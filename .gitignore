@@ -1,0 +1,10 @@
+# Configurações locais não versionadas (senhas e credenciais)
+config/database.local.php
+.env
+.env.local
+
+# Logs e arquivos de sistema
+*.log
+error_log
+.DS_Store
+Thumbs.db
