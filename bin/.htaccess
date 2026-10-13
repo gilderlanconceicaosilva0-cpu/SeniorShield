@@ -1,0 +1,15 @@
+# =====================================================================
+# SeniorShield - Bloqueio de Acesso Web à Pasta bin/
+# Os utilitários nesta pasta são exclusivos para execução via CLI.
+# =====================================================================
+
+<IfModule mod_authz_core.c>
+    # Apache 2.4+ (padrão em versões modernas do XAMPP)
+    Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    # Compatibilidade com Apache 2.2 / mod_access_compat
+    Order deny,allow
+    Deny from all
+</IfModule>

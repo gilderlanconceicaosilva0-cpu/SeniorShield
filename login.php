@@ -38,7 +38,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
                 // Redireciona de acordo com o tipo de usuário ou para a página inicial
                 if ($resultado['usuario']['tipo'] === 'admin') {
-                    header('Location: ' . url('index.php'));
+                    header('Location: ' . url('admin/index.php'));
                 } else {
                     header('Location: ' . url('index.php'));
                 }

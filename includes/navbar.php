@@ -6,6 +6,8 @@
  */
 
 $user = get_logged_user();
+$scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+$isAdminArea = (strpos($scriptName, '/admin/') !== false);
 $paginaAtual = basename($_SERVER['PHP_SELF']);
 ?>
 <header class="site-header">
@@ -21,7 +23,7 @@ $paginaAtual = basename($_SERVER['PHP_SELF']);
       <ul class="nav-links">
         <li>
           <a href="<?= url('index.php') ?>" 
-             class="nav-link <?= $paginaAtual === 'index.php' ? 'active' : '' ?>">
+             class="nav-link <?= (!$isAdminArea && $paginaAtual === 'index.php') ? 'active' : '' ?>">
             Início
           </a>
         </li>
@@ -56,7 +58,7 @@ $paginaAtual = basename($_SERVER['PHP_SELF']);
           <?php if (is_admin()): ?>
             <!-- Acesso ao Painel Administrativo -->
             <li>
-              <a href="<?= url('admin/index.php') ?>" class="nav-link user-badge admin-badge">
+              <a href="<?= url('admin/index.php') ?>" class="nav-link user-badge admin-badge <?= $isAdminArea ? 'active' : '' ?>">
                 ⚙️ Painel Admin
               </a>
             </li>
