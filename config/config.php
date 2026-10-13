@@ -48,11 +48,11 @@ if (!defined('BASE_URL')) {
         $host     = $_SERVER['HTTP_HOST'] ?? 'localhost';
         $script   = $_SERVER['SCRIPT_NAME'] ?? '';
         $baseDir  = str_replace('\\', '/', dirname($script));
-        
+
         // Remove subpastas como /admin se estiver dentro dela
         $cleanDir = preg_replace('#/(admin|src|config|includes|assets)(/.*)?$#i', '', $baseDir);
         $cleanDir = ($cleanDir === '/' || $cleanDir === '.') ? '' : rtrim($cleanDir, '/');
-        
+
         define('BASE_URL', $protocol . $host . $cleanDir);
     }
 }
@@ -112,17 +112,19 @@ define('ISD_AVISO_PRIVACIDADE',
  */
 function initSecureSession(): void {
     if (session_status() === PHP_SESSION_NONE) {
-        // Configurações de cookies seguros antes do session_start
-        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
-        
-        ini_set('session.cookie_httponly', '1');
-        ini_set('session.use_only_cookies', '1');
-        ini_set('session.cookie_samesite', 'Lax');
-        
-        if ($isHttps) {
-            ini_set('session.cookie_secure', '1');
+        if (!headers_sent()) {
+            // Configurações de cookies seguros antes do session_start
+            $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+
+            ini_set('session.cookie_httponly', '1');
+            ini_set('session.use_only_cookies', '1');
+            ini_set('session.cookie_samesite', 'Lax');
+
+            if ($isHttps) {
+                ini_set('session.cookie_secure', '1');
+            }
         }
 
-        session_start();
+        @session_start();
     }
 }
