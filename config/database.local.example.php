@@ -10,9 +10,10 @@
  * O arquivo "database.local.php" já está incluso no .gitignore e NUNCA será versionado.
  */
 
+
 define('DB_HOST', 'localhost');
 define('DB_PORT', '3306');
 define('DB_NAME', 'seniorshield');
-define('DB_USER', 'seu_usuario');
-define('DB_PASS', 'sua_senha_secreta');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');

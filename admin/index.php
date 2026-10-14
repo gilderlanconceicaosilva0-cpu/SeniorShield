@@ -108,41 +108,79 @@ require_once __DIR__ . '/includes/admin_nav.php';
       </div>
     </article>
 
-    <!-- Módulo 2: Indicadores & Pesos ISD (Planejado) -->
-    <article class="module-card">
+    <!-- Módulo 2: Indicadores & Pesos ISD (Ativo) -->
+    <article class="module-card featured">
       <div class="module-card-header">
         <h3 class="module-card-title">
           <span aria-hidden="true">⚖️</span>
           Indicadores & Pesos ISD
         </h3>
-        <span class="badge badge-outline">Fase 2 (spec.md)</span>
+        <span class="badge badge-comum">Disponível</span>
       </div>
       <p class="module-card-text">
-        Configuração das palavras-chave, frases suspeitas e pesos numéricos aplicados no cálculo do Índice de Suspeição Digital (RF36-RF39).
+        Configuração das palavras-chave, termos suspeitos e pesos numéricos aplicados no cálculo do Índice de Suspeição Digital (RF36-RF39).
       </p>
       <div style="margin-top: auto; padding-top: 14px;">
-        <button type="button" class="btn btn-outline btn-block" disabled title="Módulo previsto na próxima etapa da especificação">
-          Em Desenvolvimento
-        </button>
+        <a href="<?= url('admin/indicadores.php') ?>" class="btn btn-primary btn-block">
+          Gerenciar Indicadores &rarr;
+        </a>
       </div>
     </article>
 
-    <!-- Módulo 3: Conteúdos Educativos & Modo Aprendizado (Planejado) -->
-    <article class="module-card">
+    <!-- Módulo 3: Categorias e Tipos de Golpe (Ativo) -->
+    <article class="module-card featured">
       <div class="module-card-header">
         <h3 class="module-card-title">
-          <span aria-hidden="true">📖</span>
-          Conteúdos & Simulações
+          <span aria-hidden="true">🏷️</span>
+          Tipos de Golpe
         </h3>
-        <span class="badge badge-outline">Fase 2 (spec.md)</span>
+        <span class="badge badge-comum">Disponível</span>
       </div>
       <p class="module-card-text">
-        Gestão das dicas didáticas de prevenção contra golpes e das questões simuladas interativas do Modo Aprendizado (RF25-RF27, RF43-RF45).
+        Gerenciamento das categorias de fraudes digitais conhecidas associadas às situações de aprendizagem (RF40-RF42).
       </p>
       <div style="margin-top: auto; padding-top: 14px;">
-        <button type="button" class="btn btn-outline btn-block" disabled title="Módulo previsto na próxima etapa da especificação">
-          Em Desenvolvimento
-        </button>
+        <a href="<?= url('admin/tipos_golpe.php') ?>" class="btn btn-primary btn-block">
+          Gerenciar Tipos de Golpe &rarr;
+        </a>
+      </div>
+    </article>
+
+    <!-- Módulo 4: Conteúdos Educativos (Ativo) -->
+    <article class="module-card featured">
+      <div class="module-card-header">
+        <h3 class="module-card-title">
+          <span aria-hidden="true">📚</span>
+          Conteúdos Educativos
+        </h3>
+        <span class="badge badge-comum">Disponível</span>
+      </div>
+      <p class="module-card-text">
+        Gestão das dicas didáticas, alertas e guias de prevenção contra fraudes publicados no portal do cidadão (RF25-RF27).
+      </p>
+      <div style="margin-top: auto; padding-top: 14px;">
+        <a href="<?= url('admin/conteudos.php') ?>" class="btn btn-primary btn-block">
+          Gerenciar Conteúdos &rarr;
+        </a>
+      </div>
+    </article>
+
+    <!-- Módulo 5: Questões do Modo Aprendizado (Ativo) -->
+    <article class="module-card featured">
+      <div class="module-card-header">
+        <h3 class="module-card-title">
+          <span aria-hidden="true">🎯</span>
+          Modo Aprendizado
+        </h3>
+        <span class="badge badge-comum">Disponível</span>
+      </div>
+      <p class="module-card-text">
+        Configuração das situações simuladas interativas, gabaritos e explicações didáticas de golpes digitais (RF43-RF45).
+      </p>
+      <div style="margin-top: auto; padding-top: 14px;">
+        <a href="<?= url('admin/questoes.php') ?>" class="btn btn-primary btn-block">
+          Gerenciar Simulados &rarr;
+        </a>
       </div>
     </article>
   </div>

@@ -46,20 +46,44 @@ $paginaAtualAdmin = $paginaAtualAdmin ?? $scriptName;
     <a href="<?= url('admin/index.php') ?>"
        class="admin-subnav-link <?= $paginaAtualAdmin === 'index.php' ? 'active' : '' ?>">
       <span aria-hidden="true">📊</span>
-      Visão Geral (Painel)
+      Painel
     </a>
 
     <a href="<?= url('admin/usuarios.php') ?>"
        class="admin-subnav-link <?= in_array($paginaAtualAdmin, ['usuarios.php', 'usuario_editar.php'], true) ? 'active' : '' ?>">
       <span aria-hidden="true">👥</span>
-      Gerenciar Usuários
+      Usuários
+    </a>
+
+    <a href="<?= url('admin/indicadores.php') ?>"
+       class="admin-subnav-link <?= in_array($paginaAtualAdmin, ['indicadores.php', 'indicador_editar.php'], true) ? 'active' : '' ?>">
+      <span aria-hidden="true">⚖️</span>
+      Indicadores ISD
+    </a>
+
+    <a href="<?= url('admin/tipos_golpe.php') ?>"
+       class="admin-subnav-link <?= in_array($paginaAtualAdmin, ['tipos_golpe.php', 'tipo_golpe_editar.php'], true) ? 'active' : '' ?>">
+      <span aria-hidden="true">🏷️</span>
+      Tipos de Golpe
+    </a>
+
+    <a href="<?= url('admin/conteudos.php') ?>"
+       class="admin-subnav-link <?= in_array($paginaAtualAdmin, ['conteudos.php', 'conteudo_editar.php'], true) ? 'active' : '' ?>">
+      <span aria-hidden="true">📚</span>
+      Conteúdos
+    </a>
+
+    <a href="<?= url('admin/questoes.php') ?>"
+       class="admin-subnav-link <?= in_array($paginaAtualAdmin, ['questoes.php', 'questao_editar.php'], true) ? 'active' : '' ?>">
+      <span aria-hidden="true">🎯</span>
+      Simulados
     </a>
 
     <a href="<?= url('index.php') ?>"
        class="admin-subnav-link"
        title="Acessar o portal público do SeniorShield">
       <span aria-hidden="true">🌐</span>
-      Voltar à Plataforma Pública
+      Portal Público
     </a>
   </nav>
 </div>

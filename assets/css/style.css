@@ -1178,3 +1178,707 @@ body {
     padding: 12px 14px;
   }
 }
+
+/* =====================================================================
+ * Estilos do Motor de Análise do ISD e Histórico (Fase 3)
+ * ===================================================================== */
+
+/* Container de Análise */
+.analysis-container {
+  max-width: 900px;
+  margin: 32px auto 60px;
+}
+
+.analysis-card {
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 32px;
+}
+
+.analysis-header {
+  margin-bottom: 24px;
+}
+
+.analysis-header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.analysis-header p {
+  font-size: var(--font-size-base);
+  color: var(--text-muted);
+}
+
+.analysis-textarea {
+  width: 100%;
+  min-height: 160px;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--text-main);
+  background: #ffffff;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.analysis-textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.15);
+}
+
+.analysis-tools-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 24px;
+}
+
+.char-counter {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Card do Resultado do ISD */
+.isd-result-card {
+  background: var(--surface-color);
+  border: 3px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-lg);
+  margin-bottom: 32px;
+  animation: fadeInResult 0.35s ease-out;
+}
+
+@keyframes fadeInResult {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Medidor e Destaque do ISD */
+.isd-score-hero {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 24px;
+  border-radius: var(--radius-md);
+  margin-bottom: 28px;
+}
+
+.isd-score-hero.score-baixo {
+  background: var(--risk-low-bg);
+  border: 2px solid var(--risk-low);
+}
+
+.isd-score-hero.score-atencao {
+  background: var(--risk-attention-bg);
+  border: 2px solid var(--risk-attention);
+}
+
+.isd-score-hero.score-suspeito {
+  background: var(--risk-suspect-bg);
+  border: 2px solid var(--risk-suspect);
+}
+
+.isd-score-hero.score-alto {
+  background: var(--risk-high-bg);
+  border: 2px solid var(--risk-high);
+}
+
+.isd-score-hero.score-critico {
+  background: var(--risk-critical-bg);
+  border: 2px solid var(--risk-critical);
+}
+
+.isd-score-number-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 130px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.isd-score-value {
+  font-size: 3.25rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.isd-score-scale {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.isd-score-info {
+  flex: 1;
+}
+
+.isd-classification-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 1.125rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+/* Badges de Risco Semântico */
+.risk-baixo {
+  color: var(--risk-low);
+  background: var(--risk-low-bg);
+  border: 1px solid var(--risk-low);
+}
+.risk-atencao {
+  color: var(--risk-attention);
+  background: var(--risk-attention-bg);
+  border: 1px solid var(--risk-attention);
+}
+.risk-suspeito {
+  color: var(--risk-suspect);
+  background: var(--risk-suspect-bg);
+  border: 1px solid var(--risk-suspect);
+}
+.risk-alto {
+  color: var(--risk-high);
+  background: var(--risk-high-bg);
+  border: 1px solid var(--risk-high);
+}
+.risk-critico {
+  color: var(--risk-critical);
+  background: var(--risk-critical-bg);
+  border: 1px solid var(--risk-critical);
+}
+
+/* Barra de Progresso / Termômetro de Risco */
+.isd-meter-container {
+  margin: 16px 0 6px;
+}
+
+.isd-meter-track {
+  width: 100%;
+  height: 16px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.isd-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fill-baixo { background: var(--risk-low); }
+.fill-atencao { background: var(--risk-attention); }
+.fill-suspeito { background: var(--risk-suspect); }
+.fill-alto { background: var(--risk-high); }
+.fill-critico { background: var(--risk-critical); }
+
+.isd-meter-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* Lista de Indicadores Detectados */
+.indicators-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.indicator-card {
+  background: var(--surface-alt);
+  border-left: 5px solid var(--primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.indicator-card.risk-high-border {
+  border-left-color: var(--risk-high);
+}
+
+.indicator-card.risk-critical-border {
+  border-left-color: var(--risk-critical);
+}
+
+.indicator-title {
+  font-size: var(--font-size-base);
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.indicator-desc {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.indicator-terms {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.indicator-term-pill {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.indicator-weight-badge {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+/* Caixa Recomendações e Orientações */
+.guidance-box {
+  background: #f8fafc;
+  border: 2px dashed #94a3b8;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-top: 28px;
+}
+
+.guidance-box h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guidance-list {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: var(--font-size-base);
+  color: var(--text-muted);
+}
+
+/* Estilos da Tela de Histórico */
+.history-container {
+  max-width: 1000px;
+  margin: 32px auto 60px;
+}
+
+.history-card-item {
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-card-item:hover {
+  border-color: #94a3b8;
+  box-shadow: var(--shadow-md);
+}
+
+.history-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.history-date {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.history-message-preview {
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--text-main);
+  background: var(--surface-alt);
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  font-style: italic;
+  border-left: 3px solid var(--primary);
+}
+
+.history-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .isd-score-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+  .isd-score-number-box {
+    width: 100%;
+  }
+  .analysis-card,
+  .isd-result-card {
+    padding: 24px 18px;
+  }
+  .indicator-card {
+    flex-direction: column;
+  }
+}
+
+/* =====================================================================
+ * Estilos do Modo Aprendizado e Conteúdos Educativos (Fase 5)
+ * ===================================================================== */
+
+/* Simulador do Modo Aprendizado */
+.simulator-container {
+  max-width: 860px;
+  margin: 32px auto 60px;
+}
+
+.simulated-device {
+  background: #ffffff;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.chat-mock-header {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.chat-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.375rem;
+}
+
+.chat-sender-info h3 {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  margin: 0;
+  color: #ffffff;
+}
+
+.chat-sender-info p {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.chat-body-area {
+  background: #f1f5f9;
+  padding: 28px 20px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chat-bubble-received {
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 18px 18px 18px 4px;
+  padding: 20px;
+  max-width: 90%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  position: relative;
+  border: 1px solid #e2e8f0;
+}
+
+.chat-bubble-time {
+  display: block;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+/* Botões de Escolha do Simulador */
+.sim-actions-area {
+  padding: 24px 20px;
+  background: #ffffff;
+  border-top: 2px solid #e2e8f0;
+}
+
+.sim-question-prompt {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 20px;
+}
+
+.sim-choices-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.btn-choice {
+  min-height: 64px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 2px solid transparent;
+}
+
+.btn-choice:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-choice-golpe {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #b91c1c;
+}
+.btn-choice-golpe:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-choice-seguro {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #166534;
+}
+.btn-choice-seguro:hover:not(:disabled) {
+  background: #166534;
+}
+
+/* Caixa de Feedback Didático */
+.sim-feedback-box {
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-top: 24px;
+  animation: fadeInResult 0.3s ease-out;
+}
+
+.sim-feedback-box.correct {
+  background: #f0fdf4;
+  border: 2px solid #16a34a;
+}
+
+.sim-feedback-box.wrong {
+  background: #fef2f2;
+  border: 2px solid #dc2626;
+}
+
+.sim-feedback-title {
+  font-size: 1.375rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sim-feedback-box.correct .sim-feedback-title {
+  color: #15803d;
+}
+
+.sim-feedback-box.wrong .sim-feedback-title {
+  color: #991b1b;
+}
+
+.sim-feedback-explanation {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+/* Painel de Desempenho do Usuário */
+.user-performance-box {
+  background: #eff6ff;
+  border: 2px solid #93c5fd;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.performance-metric {
+  text-align: center;
+}
+
+.performance-metric-val {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.performance-metric-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Grade de Conteúdos Educativos */
+.edu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.edu-card {
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edu-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: #94a3b8;
+}
+
+.edu-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.edu-badge-guia {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.edu-badge-alerta {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.edu-badge-dica {
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.edu-card-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.edu-card-text {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .sim-choices-grid {
+    grid-template-columns: 1fr;
+  }
+  .user-performance-box {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+}
