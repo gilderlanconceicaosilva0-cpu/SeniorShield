@@ -74,10 +74,24 @@ class AnalysisService {
 
         // 3. Processamento e Detecção de Indicadores (RF09, RF10)
         $mensagemNormalizada = $this->normalizarTexto($mensagemLimpa);
-        $indicadoresDetectados = [];
-        $somaPesos = 0;
 
-        foreach ($indicadoresCadastrados as $indicador) {
+        $mensagemPreventiva = preg_match(
+            '/\b(nunca|nao|jamais)\s+(informe|compartilhe|forneca|envie|revele|divulgue)\b.{0,80}\b(senha|codigo|token|dados bancarios)\b/iu',
+            $mensagemNormalizada
+            ) === 1;
+            $mensagemSemCobranca = preg_match(
+                '/\b(nao preciso pagar|nao precisa pagar|nao e necessario pagar|nao ha cobranca|sem custo|entrega gratuita|entrega gratis)\b/iu',
+                $mensagemNormalizada
+            ) === 1;
+
+        $cobrancaExplicita = preg_match(
+                '/\b(pague|pagar uma taxa|pague a taxa|taxa para liberar|taxa de liberacao|transfira|faca um deposito|faca o pagamento)\b/iu',
+                $mensagemNormalizada
+        ) === 1;
+         $indicadoresDetectados = [];
+         $somaPesos = 0;
+
+            foreach ($indicadoresCadastrados as $indicador) {
             $palavrasChave = array_filter(array_map('trim', explode(',', $indicador['palavras_chave'])));
             $termosEncontrados = [];
 
@@ -96,10 +110,69 @@ class AnalysisService {
                 }
             }
 
+
+            $idIndicador = (int) $indicador['id_indicador'];
+
+            // Ignora indicadores de senha e falso suporte em avisos preventivos.
+            if (
+                in_array($idIndicador, [4, 10], true)
+                && $mensagemPreventiva
+            ) {
+                continue;
+}
+
+            // Não considera uma negação de cobrança como pedido de pagamento.
+            if (
+                $idIndicador === 2
+                && $mensagemSemCobranca
+                && !$cobrancaExplicita
+            ) {
+                continue;
+            }
+
+            // Evita falso positivo em mensagens de sorteio sem cobrança.
+            if (
+                (int) $indicador['id_indicador'] === 5
+                && $mensagemSemCobranca
+                && !$cobrancaExplicita
+            ) {
+                continue;
+            }
+
+            // Evita falso positivo em mensagens de sorteio sem cobrança.
+            if (
+                $idIndicador === 5
+                && $mensagemSemCobranca
+                && !$cobrancaExplicita
+            ) {
+                continue;
+            }
             // Se pelo menos um termo chave foi encontrado, o indicador é registrado (RF10)
             if (!empty($termosEncontrados)) {
-                $pesoAplicado = (int)$indicador['peso'];
-                $somaPesos += $pesoAplicado;
+
+                    $pesoBase = (int) $indicador['peso'];
+
+                    // Remove duplicatas que diferem apenas por acentos ou maiúsculas.
+                    $termosUnicos = [];
+
+                    foreach ($termosEncontrados as $termoEncontrado) {
+                        $chave = $this->normalizarTexto($termoEncontrado);
+                        $termosUnicos[$chave] = $termoEncontrado;
+                    }
+
+                    $termosEncontrados = array_values($termosUnicos);
+
+                    // Bônus de 5 pontos por sinal adicional, limitado a 10.
+                    $bonusSinais = min(
+                        10,
+                        max(0, (count($termosEncontrados) - 1) * 5)
+                    );
+
+                    // O bônus não pode elevar este indicador acima de 30 pontos.
+                    $pesoAplicado = min(30, $pesoBase + $bonusSinais);
+
+                    $somaPesos += $pesoAplicado;
+
 
                 $indicadoresDetectados[] = [
                     'id_indicador'      => (int)$indicador['id_indicador'],

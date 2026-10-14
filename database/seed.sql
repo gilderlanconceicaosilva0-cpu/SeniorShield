@@ -22,13 +22,98 @@ INSERT INTO `TIPOS_GOLPE` (`id_tipo_golpe`, `nome`, `descricao`, `ativo`) VALUES
 -- Indicadores de risco utilizados pelo algoritmo do ISD
 -- Os pesos são configurados com base nos exemplos da Seção 4 da spec.md
 -- ---------------------------------------------------------------------
-INSERT INTO `INDICADORES` (`id_indicador`, `nome`, `descricao`, `palavras_chave`, `peso`, `ativo`) VALUES
-(1, 'Urgência extrema', 'Pressão psicológica para ação imediata sem tempo para reflexão ou consulta a familiares.', 'urgente,imediatamente,agora,bloqueio hoje,cancelamento imediato,última chance,prazo final,atenção imediata,evite o bloqueio,ação necessária hoje', 15, 1),
-(2, 'Pedido de dinheiro ou transferência', 'Solicitação explícita de envio de valores financeiros, depósitos ou pagamentos instantâneos.', 'pix,transferência,transferir,dinheiro,depósito,deposite,pagamento,pagar taxa,envie o valor,chave pix,boleto anexo', 25, 1),
-(3, 'Link suspeito ou encurtado', 'Endereços web encurtados ou links desconhecidos para induzir o clique e direcionar a páginas falsas.', 'bit.ly,tinyurl,is.gd,clique aqui,acesse o link,link abaixo,link seguro,confirme no link,acesse para regularizar,atualize seu cadastro', 20, 1),
-(4, 'Pedido de senha ou código de confirmação', 'Tentativa de obter senhas, códigos recebidos por SMS ou tokens de segurança pessoal.', 'informe sua senha,envie o código,código de confirmação,código sms,digite seu token,senha do cartão,confirme sua senha,código de autenticação', 25, 1),
-(5, 'Oferta mirabolante ou falso prêmio', 'Promessa exagerada de ganho fácil, benefício governamental inesperado ou valores a receber.', 'parabéns você ganhou,prêmio liberado,benefício exclusivo,resgate agora,sorteio premiado,saldo disponível,você foi contemplado,resgatar valor', 15, 1),
-(6, 'Ameaça de bloqueio de conta ou serviço', 'Tentativa de assustar o usuário com suspensão de serviços essenciais, contas de banco ou documentos.', 'sua conta foi bloqueada,acesso suspenso,serviço cancelado,suspeita de fraude,regularize sua situação,cpf bloqueado,evite cancelamento', 20, 1);
+
+INSERT INTO `INDICADORES`
+(`id_indicador`, `nome`, `descricao`, `palavras_chave`, `peso`, `ativo`)
+VALUES
+(
+  1,
+  'Urgência extrema',
+  'Pressão psicológica para forçar uma ação imediata.',
+  'urgente,imediatamente,agora,só hoje,nao perca,não perca,última chance,ultima chance,última oportunidade,prazo final,atenção imediata,ação necessária,evite o bloqueio,bloqueio hoje,cancelamento imediato,último aviso,responda imediatamente,regularize hoje,tempo esgotando',
+  15,
+  1
+),
+(
+  2,
+  'Pedido de dinheiro ou transferência',
+  'Solicitação suspeita de pagamentos, transferências ou depósitos.',
+  'pix,transferência,transferencia,transferir,dinheiro,depósito,deposito,deposite,pagamento,pagar,pague,pague agora,pagar taxa,taxa de liberação,taxa de liberacao,envie o valor,envie dinheiro,transfira agora,chave pix,boleto anexo,depósito antecipado,deposito antecipado,pagamento antecipado,pague para receber,taxa de entrega,taxa de cadastro,faça um pix,faca um pix',
+  25,
+  1
+),
+(
+  3,
+  'Link suspeito ou encurtado',
+  'Tentativa de direcionar o usuário a links ou páginas potencialmente fraudulentas.',
+  'bit.ly,tinyurl,is.gd,clique aqui,acesse o link,link abaixo,link desconhecido,confirme no link,acesse para regularizar,atualize seu cadastro,clique para receber,clique para resgatar,acesse para desbloquear,valide sua conta,página de verificação,pagina de verificacao,link para resgate',
+  20,
+  1
+),
+(
+  4,
+  'Pedido de senha ou código de confirmação',
+  'Tentativa de obter credenciais, códigos de autenticação ou dados pessoais.',
+  'informe sua senha,envie o código,envie o codigo,código de confirmação,codigo de confirmacao,código sms,codigo sms,digite seu token,senha do cartão,senha do cartao,confirme sua senha,código de autenticação,codigo de autenticacao,código de segurança,codigo de seguranca,código recebido por sms,codigo recebido por sms,número do cartão,numero do cartao,dados bancários,dados bancarios,compartilhe sua senha',
+  25,
+  1
+),
+(
+  5,
+  'Oferta mirabolante ou falso prêmio',
+  'Promessas exageradas de prêmios, benefícios ou ganhos financeiros.',
+  'parabéns você ganhou,parabens voce ganhou,você ganhou,voce ganhou,prêmio liberado,premio liberado,benefício exclusivo,beneficio exclusivo,resgate agora,sorteio premiado,saldo disponível,saldo disponivel,você foi contemplado,voce foi contemplado,resgatar valor,ganhe dinheiro,ganha dinheiro,ganha 2000,ganhe 2000,ganho fácil,ganho facil,dinheiro fácil,dinheiro facil,lucro garantido,retorno garantido,multiplique seu dinheiro,renda extra garantida,reembolso disponível,reembolso disponivel,saldo a receber,celular grátis,celular gratis,celular gratuito,ganhe um celular,ganhou um celular,foi selecionado,selecionado para receber,receber um prêmio,receber um premio,prêmio surpresa,premio surpresa,prêmio especial,premio especial,prêmio em dinheiro,premio em dinheiro,confirme seu prêmio,confirme seu premio,pague a taxa para receber,taxa para liberar o prêmio,taxa para liberar o premio',
+  15,
+  1
+),
+(
+  6,
+  'Ameaça de bloqueio de conta ou serviço',
+  'Uso de ameaças sobre contas, documentos ou serviços para pressionar o usuário.',
+  'sua conta foi bloqueada,acesso suspenso,serviço cancelado,servico cancelado,suspeita de fraude,regularize sua situação,regularize sua situacao,cpf bloqueado,evite cancelamento,conta será bloqueada,conta sera bloqueada,conta em análise,conta em analise,benefício bloqueado,beneficio bloqueado,cadastro suspenso,compra não reconhecida,compra nao reconhecida,fatura em atraso,dívida pendente,divida pendente',
+  20,
+  1
+),
+(
+  7,
+  'Falso familiar ou pedido de ajuda',
+  'Mensagens que podem imitar conhecidos e pedir dinheiro com urgência.',
+  'troquei de número,troquei de numero,meu celular quebrou,novo número,novo numero,salva meu contato,faz um pix para mim,faz um pix pra mim,paga essa conta,preciso de dinheiro urgente,depois te devolvo,estou sem acesso à minha conta,estou sem acesso a minha conta,não posso falar agora,nao posso falar agora',
+  20,
+  1
+),
+(
+  8,
+  'Falsa entrega ou cobrança de encomenda',
+  'Cobranças inesperadas para liberar encomendas, entregas ou reembolsos.',
+  'pedido retido,entrega bloqueada,taxa alfandegária,taxa alfandegaria,produto apreendido,confirme o endereço,confirme o endereco,pagamento para liberar encomenda,liberar sua encomenda,taxa para receber encomenda,taxa de entrega pendente,entrega pendente,reembolso pendente',
+  15,
+  1
+),
+(
+  9,
+  'Falso emprego, empréstimo ou investimento',
+  'Promessas suspeitas de emprego, crédito ou retorno financeiro.',
+  'vaga garantida,trabalho fácil,trabalho facil,ganhe por dia,renda sem esforço,renda sem esforco,investimento sem risco,lucro diário garantido,lucro diario garantido,retorno acima do mercado,empréstimo aprovado,emprestimo aprovado,crédito liberado,credito liberado,pague a taxa para liberar o empréstimo,pague a taxa para liberar o emprestimo,depósito para contratação,deposito para contratacao,comissão antecipada,comissao antecipada',
+  20,
+  1
+),
+(
+  10,
+  'Falso suporte ou acesso remoto',
+  'Tentativas suspeitas de obter acesso ao dispositivo ou induzir transferências.',
+  'somos do suporte, suporte técnico do seu banco, suporte tecnico do seu banco, suporte do banco, ligacao do banco, ligação do banco, confirme uma operação, confirme uma operacao, instale este aplicativo, instale este app, compartilhe sua tela, compartilhe o código, compartilhe o codigo, compartilhe o código de acesso, compartilhe o codigo de acesso, código de acesso, codigo de acesso, código de confirmação, codigo de confirmacao, código de verificação, codigo de verificacao, acesso remoto, aplicativo de acesso remoto, controle remoto do dispositivo, valide sua identidade, validação por telefone, validacao por telefone, transfira para uma conta segura, conta protegida, procedimento de segurança, procedimento de seguranca, acesso ao seu dispositivo',
+  20,
+  1
+)
+
+ON DUPLICATE KEY UPDATE
+    nome = VALUES(nome),
+    descricao = VALUES(descricao),
+    palavras_chave = VALUES(palavras_chave),
+    peso = VALUES(peso),
+    ativo = VALUES(ativo);
+
 
 -- ---------------------------------------------------------------------
 -- 3. CONTEUDOS
