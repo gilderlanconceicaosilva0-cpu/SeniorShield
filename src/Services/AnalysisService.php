@@ -117,28 +117,29 @@ class AnalysisService {
             }
 
             // --- REGRAS CONTEXTUAIS AVANÇADAS ---
+            $tipoIndicador = $this->obterTipoIndicador($indicador);
 
-            // Regra 1: Avisos Preventivos Legítimos de Segurança (IDs 4 e 10)
-            if (in_array($idIndicador, [4, 10], true)) {
+            // Regra 1: Avisos Preventivos Legítimos de Segurança (Credenciais e Falso Suporte)
+            if (in_array($tipoIndicador, ['credenciais', 'falso_suporte'], true)) {
                 if ($this->ehContextoPreventivo($mensagemNormalizada, $termosDeduplicados, $idIndicador)) {
                     continue;
                 }
             }
 
-            // Regra 2: Contexto Legítimo de Gratuidade / Ausência de Cobrança (IDs 2, 5 e 8)
+            // Regra 2: Contexto Legítimo de Gratuidade / Ausência de Cobrança (Cobrança, Falso Prêmio e Entrega)
             // Se há garantia explícita de gratuidade sem nenhuma cobrança ativa posterior
             if ($ehSemCobrancaLegitimo && !$temCobrancaAtiva) {
-                if (in_array($idIndicador, [2, 5, 8], true)) {
+                if (in_array($tipoIndicador, ['cobranca', 'falso_premio', 'entrega'], true)) {
                     continue;
                 }
             }
 
-            // Regra 2B: Mensagens de Logística/Rastreamento Legítimas sem Ameaça nem Cobrança (ID 8)
-            if ($idIndicador === 8 && $this->ehLogisticaLegitimaSemAmeaca($mensagemNormalizada, $termosDeduplicados)) {
+            // Regra 2B: Mensagens de Logística/Rastreamento Legítimas sem Ameaça nem Cobrança
+            if ($tipoIndicador === 'entrega' && $this->ehLogisticaLegitimaSemAmeaca($mensagemNormalizada, $termosDeduplicados)) {
                 continue;
             }
-            // Regra 2C: Exige contexto real de entrega para ativar o indicador ID 8
-            if ($idIndicador === 8) {
+            // Regra 2C: Exige contexto real de entrega para ativar o indicador de entrega
+            if ($tipoIndicador === 'entrega') {
                 $temContextoEntrega = (bool) preg_match(
                     '/\b(encomenda|pacote|pedido|entrega|transportadora|correios|rastreamento|rastreio|alfandega|alfandegaria|objeto|mercadoria)\b/iu',
                     $mensagemNormalizada
@@ -149,19 +150,27 @@ class AnalysisService {
                 }
             }
 
-            // Regra 3: Desambiguação de Vaga de Emprego vs. Falso Prêmio (ID 5 vs ID 9)
-            // Expressões genéricas de seleção quando em contexto de emprego pertencem ao ID 9, não ao ID 5
-            if ($idIndicador === 5 && $ehSelecaoEmprego) {
+            // Regra 3: Desambiguação de Vaga de Emprego vs. Falso Prêmio
+            // Expressões genéricas de seleção quando em contexto de emprego pertencem à categoria de emprego, não prêmio
+            if ($tipoIndicador === 'falso_premio' && $ehSelecaoEmprego) {
                 // Filtra termos de seleção genérica do indicador de prêmio
                 $termosNaoEmprego = array_filter($termosDeduplicados, function ($t) {
                     $tNorm = $this->normalizarTexto($t);
-                    return !in_array($tNorm, ['foi selecionado', 'selecionado para receber', 'selecionado', 'você foi contemplado', 'voce foi contemplado'], true);
+                    return !in_array($tNorm, ['foi selecionado', 'selecionado para receber', 'selecionado', 'você foi contemplado', 'voce foi contemplado', 'você foi selecionado', 'voce foi selecionado'], true);
                 });
 
                 if (empty($termosNaoEmprego)) {
                     continue;
                 }
                 $termosDeduplicados = array_values($termosNaoEmprego);
+            }
+
+            // Regra 4: Validação Contextual de Links Referenciais ("link abaixo", etc.)
+            // Evita falsos positivos em mensagens legítimas que apenas mencionam "link abaixo" sem contexto suspeito
+            if ($tipoIndicador === 'link') {
+                if ($this->ehApenasLinkReferencialInocente($mensagemNormalizada, $termosDeduplicados)) {
+                    continue;
+                }
             }
 
             // Cálculo da pontuação do indicador com bônus por sinais independentes adicionais
@@ -536,6 +545,51 @@ class AnalysisService {
     }
 
     /**
+     * Mapeia o indicador para seu identificador canônico/semântico a partir do nome
+     * (ou id_indicador como fallback), desacoplando a lógica de regras de IDs sequenciais fixos.
+     *
+     * @param array $indicador
+     * @return string
+     */
+    public function obterTipoIndicador(array $indicador): string {
+        $nomeNorm = $this->normalizarTexto($indicador['nome'] ?? '');
+        $id = (int)($indicador['id_indicador'] ?? 0);
+
+        if (str_contains($nomeNorm, 'urgencia') || $id === 1) {
+            return 'urgencia';
+        }
+        if (str_contains($nomeNorm, 'dinheiro') || str_contains($nomeNorm, 'transferencia') || $id === 2) {
+            return 'cobranca';
+        }
+        if (str_contains($nomeNorm, 'link') || $id === 3) {
+            return 'link';
+        }
+        if (str_contains($nomeNorm, 'senha') || str_contains($nomeNorm, 'codigo') || $id === 4) {
+            return 'credenciais';
+        }
+        if (str_contains($nomeNorm, 'premio') || str_contains($nomeNorm, 'oferta') || $id === 5) {
+            return 'falso_premio';
+        }
+        if (str_contains($nomeNorm, 'bloqueio') || str_contains($nomeNorm, 'ameaca') || $id === 6) {
+            return 'ameaca';
+        }
+        if (str_contains($nomeNorm, 'familiar') || str_contains($nomeNorm, 'parente') || $id === 7) {
+            return 'falso_familiar';
+        }
+        if (str_contains($nomeNorm, 'entrega') || str_contains($nomeNorm, 'encomenda') || $id === 8) {
+            return 'entrega';
+        }
+        if (str_contains($nomeNorm, 'emprego') || str_contains($nomeNorm, 'emprestimo') || str_contains($nomeNorm, 'investimento') || $id === 9) {
+            return 'falso_emprego';
+        }
+        if (str_contains($nomeNorm, 'suporte') || str_contains($nomeNorm, 'remoto') || $id === 10) {
+            return 'falso_suporte';
+        }
+
+        return 'outro';
+    }
+
+    /**
      * Verifica se a mensagem possui cobrança ativa, solicitação de pagamento ou transferência.
      *
      * @param string $mensagemNorm
@@ -543,7 +597,7 @@ class AnalysisService {
      */
     private function temCobrancaAtiva(string $mensagemNorm): bool {
         return (bool) preg_match(
-            '/\b(pague|pagar|transfira|transferir|faça um pix|faca um pix|faça o pagamento|faca o pagamento|envie um pix|mande um pix|deposite|deposito antecipado|depósito antecipado|taxa para liberar|taxa de liberação|taxa de liberacao|taxa de entrega|taxa de cadastro|chave pix|envie o valor|pague a taxa|pagar taxa|pagar a taxa)\b/iu',
+            '/\b(pague|pagar|transfira|transferir|faça um pix|faca um pix|faça o pagamento|faca o pagamento|envie um pix|mande um pix|deposite|deposito antecipado|depósito antecipado|taxa para liberar|taxa de liberação|taxa de liberacao|taxa de entrega|taxa de cadastro|chave pix|envie o valor|pague a taxa|pagar taxa|pagar a taxa|pague uma taxa|pague taxa|pague uma pequena taxa|pequena taxa|pagamento de taxa|receber o dinheiro)\b/iu',
             $mensagemNorm
         );
     }
@@ -627,10 +681,10 @@ class AnalysisService {
         );
 
         // Verifica se há vetores maliciosos ativos na mensagem
-        $temLinkSuspeito = (bool) preg_match('/\b(bit\.ly|tinyurl|is\.gd|clique aqui|acesse o link encurtado|link abaixo)\b/iu', $mensagemNorm);
+        $temLinkSuspeito = (bool) preg_match('/\b(bit\.ly|tinyurl|is\.gd|clique aqui|acesse o link encurtado|regularizar-encomenda)\b/iu', $mensagemNorm);
         $temCobranca = $this->temCobrancaAtiva($mensagemNorm);
         $temInstalacaoOuAcessoRemoto = (bool) preg_match('/\b(instale este aplicativo|instale este app|compartilhe sua tela|acesso remoto|qualquer aplicativo)\b/iu', $mensagemNorm);
-        $temAmeacaBloqueio = (bool) preg_match('/\b(sua conta foi bloqueada|conta sera bloqueada|bloqueio hoje|cancelamento imediato)\b/iu', $mensagemNorm);
+        $temAmeacaBloqueio = (bool) preg_match('/\b(sua conta foi bloqueada|conta sera bloqueada|bloqueio hoje|cancelamento imediato|devolvido ao remetente|sera devolvido)\b/iu', $mensagemNorm);
 
         // Se houver qualquer vetor ativo de ataque, o aviso NÃO neutraliza a mensagem
         if ($temPedidoAtivoCredencial || $temLinkSuspeito || $temCobranca || $temInstalacaoOuAcessoRemoto || $temAmeacaBloqueio) {
@@ -641,12 +695,109 @@ class AnalysisService {
     }
 
     /**
-     * Verifica se os termos do Indicador 8 (entrega) são exclusivamente termos operacionais
-     * de logística e rastreamento em uma mensagem legítima, sem cobrança, sem links suspeitos
-     * e sem ameaças de retenção ou apreensão.
+     * Avalia se a menção a links se resume a locuções referenciais neutras (ex: "link abaixo")
+     * em uma mensagem desprovida de cobrança, urgência abusiva, ameaça, pedido de senha ou URLs maliciosas.
+     * Atende ao requisito: "Não classificar qualquer ocorrência da expressão 'link abaixo' automaticamente como golpe".
      *
      * @param string $mensagemNorm Texto normalizado
-     * @param array $termosDetectados Termos detectados para o indicador 8
+     * @param array $termosDetectados Termos detectados no indicador de link
+     * @return bool True se for menção referencial legítima/neutra que não deve ser penalizada
+     */
+    private function ehApenasLinkReferencialInocente(string $mensagemNorm, array $termosDetectados): bool {
+        // Termos que são intrinsecamente suspeitos ou vetores diretos de phishing
+        $termosMaliciososOuEncurtadores = [
+            'bit.ly', 'tinyurl', 'is.gd', 'regularizar-encomenda',
+            'clique para desbloquear', 'valide sua conta', 'pagina de verificacao',
+            'atualize seu cadastro', 'clique para receber', 'clique para resgatar'
+        ];
+
+        foreach ($termosDetectados as $termo) {
+            $tNorm = $this->normalizarTexto($termo);
+            if (in_array($tNorm, $termosMaliciososOuEncurtadores, true)) {
+                return false; // Contém termo inerentemente malicioso
+            }
+        }
+
+        // Verifica se há URL explicitamente suspeita no texto (encurtadores, domínio de teste .example, IP numérico)
+        if (preg_match('/\b(https?:\/\/)?([a-z0-9\-]+\.)*(bit\.ly|tinyurl\.com|is\.gd|cutt\.ly|rebrand\.ly|[a-z0-9\-]+\.example|[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\b/iu', $mensagemNorm)) {
+            return false;
+        }
+
+        // Se houver cobrança ativa, o link faz parte do vetor financeiro do golpe
+        if ($this->temCobrancaAtiva($mensagemNorm)) {
+            return false;
+        }
+
+        // Se houver ameaça ativa de bloqueio, cancelamento ou devolução
+        if ($this->temAmeacaAtiva($mensagemNorm)) {
+            return false;
+        }
+
+        // Se houver urgência com pressão psicológica
+        if ($this->temUrgenciaPressao($mensagemNorm)) {
+            return false;
+        }
+
+        // Se houver tentativa de extração de credenciais
+        if ($this->temPedidoCredencialAtivo($mensagemNorm)) {
+            return false;
+        }
+
+        // Se houver oferta de falso prêmio condicionada
+        if ($this->temFalsoPremioAtivo($mensagemNorm)) {
+            return false;
+        }
+
+        // Mensagem sem vetores maliciosos onde o termo de link é meramente referencial
+        return true;
+    }
+
+    /**
+     * Verifica se a mensagem apresenta ameaças ativas de bloqueio, suspensão, perda ou devolução.
+     */
+    private function temAmeacaAtiva(string $mensagemNorm): bool {
+        return (bool) preg_match(
+            '/\b(sua conta foi bloqueada|conta sera bloqueada|bloqueio hoje|cancelamento imediato|cpf bloqueado|evite cancelamento|servico cancelado|devolvido ao remetente|sera devolvido|devolucao ao remetente|evite a devolucao|evite devolucao|caso nao regularize)\b/iu',
+            $mensagemNorm
+        );
+    }
+
+    /**
+     * Verifica se a mensagem utiliza pressão psicológica de urgência extrema de golpe.
+     */
+    private function temUrgenciaPressao(string $mensagemNorm): bool {
+        return (bool) preg_match(
+            '/\b(urgente|imediatamente|so hoje|ainda hoje|agora mesmo|prazo final|prazo termina hoje|tempo esgotando|nao perca essa oportunidade|nao perca|ultimas horas|tempo limite|bloqueio hoje|cancelamento imediato)\b/iu',
+            $mensagemNorm
+        );
+    }
+
+    /**
+     * Verifica pedido direto e ativo de senhas, códigos ou tokens.
+     */
+    private function temPedidoCredencialAtivo(string $mensagemNorm): bool {
+        return (bool) preg_match(
+            '/(?<!nunca\s)(?<!jamais\s)(?<!nao\s)\b(informe|digite|compartilhe|envie|forneca|passe|valide|atualize)\b.{0,40}\b(senha|token|codigo sms|codigo de acesso|dados bancarios)\b/iu',
+            $mensagemNorm
+        );
+    }
+
+    /**
+     * Verifica se há contexto ativo de falso prêmio.
+     */
+    private function temFalsoPremioAtivo(string $mensagemNorm): bool {
+        return (bool) preg_match(
+            '/\b(parabens voce ganhou|voce ganhou um premio|voce ganhou|ganhou um premio|premio liberado|sorteio premiado|voce foi contemplado|foi selecionado para receber|selecionado para receber|receber um premio)\b/iu',
+            $mensagemNorm
+        );
+    }
+
+    /**
+     * Verifica se os termos do indicador de entrega são exclusivamente operacionais
+     * em uma mensagem legítima, sem cobrança, sem links suspeitos e sem ameaças de retenção ou devolução.
+     *
+     * @param string $mensagemNorm Texto normalizado
+     * @param array $termosDetectados Termos detectados para o indicador de entrega
      * @return bool True se for logística legítima sem qualquer sinal de golpe
      */
     private function ehLogisticaLegitimaSemAmeaca(string $mensagemNorm, array $termosDetectados): bool {
@@ -657,16 +808,16 @@ class AnalysisService {
 
         // Se houver links suspeitos ou encurtados, não é logística neutra
         $temLinkSuspeito = (bool) preg_match(
-            '/\b(bit\.ly|tinyurl|is\.gd|clique aqui|clique no link|acesse o link|link encurtado|link abaixo|link enviado|pelo link|link para)\b/iu',
+            '/\b(bit\.ly|tinyurl|is\.gd|cutt\.ly|regularizar-encomenda|clique aqui|clique no link|acesse o link|link encurtado|link enviado|pelo link|link para)\b/iu',
             $mensagemNorm
         );
         if ($temLinkSuspeito) {
             return false;
         }
 
-        // Se houver ameaça explícita de retenção, bloqueio ou apreensão
+        // Se houver ameaça explícita de retenção, bloqueio, apreensão ou devolução
         $temAmeacaRetencao = (bool) preg_match(
-            '/\b(retid[oa]|bloquead[oa]|apreendid[oa]|alfandeg|correios.*taxa|taxa.*correios|evite cancelamento|evite devolucao|multa|penalidade)\b/iu',
+            '/\b(retid[oa]|bloquead[oa]|apreendid[oa]|alfandeg|correios.*taxa|taxa.*correios|evite cancelamento|evite devolucao|multa|penalidade|devolvido ao remetente|sera devolvido|devolucao ao remetente|pendencia na alfandega)\b/iu',
             $mensagemNorm
         );
         if ($temAmeacaRetencao) {

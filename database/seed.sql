@@ -30,7 +30,7 @@ VALUES
   1,
   'Urgência extrema',
   'Pressão psicológica para forçar uma ação imediata.',
-  'urgente, imediatamente, agora, só hoje, so hoje, nao perca, não perca, última chance, ultima chance, última oportunidade, ultima oportunidade, prazo final, atenção imediata, atencao imediata, ação necessária, acao necessaria, evite o bloqueio, bloqueio hoje, cancelamento imediato, último aviso, ultimo aviso, responda imediatamente, regularize hoje, tempo esgotando, ainda hoje, agora mesmo, últimas horas, ultimas horas, tempo limite, prazo se esgotando, evitar bloqueio',
+  'urgente, imediatamente, agora, só hoje, so hoje, nao perca, não perca, não perca essa oportunidade, nao perca essa oportunidade, última chance, ultima chance, última oportunidade, ultima oportunidade, prazo final, prazo termina hoje, prazo se esgotando, tempo esgotando, atenção imediata, atencao imediata, ação necessária, acao necessaria, ação necessária hoje, acao necessaria hoje, evite o bloqueio, bloqueio hoje, cancelamento imediato, último aviso, ultimo aviso, responda imediatamente, regularize hoje, ainda hoje, agora mesmo, últimas horas, ultimas horas, tempo limite, evitar bloqueio, válido somente hoje, valido somente hoje, apenas hoje, termine hoje',
   15,
   1
 ),
@@ -38,7 +38,7 @@ VALUES
   2,
   'Pedido de dinheiro ou transferência',
   'Solicitação suspeita de pagamentos, transferências ou depósitos.',
-  'pix, transferência, transferencia, transferir, dinheiro, depósito, deposito, deposite, pagamento, pagar, pague, pague agora, pagar taxa, pagar a taxa, pague a taxa, taxa de liberação, taxa de liberacao, taxa para liberar, envie o valor, envie dinheiro, transfira agora, chave pix, boleto anexo, depósito antecipado, deposito antecipado, pagamento antecipado, pague para receber, taxa de entrega, taxa de cadastro, faça um pix, faca um pix, faça o pagamento, faca o pagamento, mande um pix, envie um pix, fazer um pix, deposito para liberacao, depósito para liberação',
+  'pix, transferência, transferencia, transferir, dinheiro, depósito, deposito, deposite, pagamento, pagar, pague, pague uma taxa, pague taxa, pagar taxa, pagar a taxa, pague a taxa, taxa de liberação, taxa de liberacao, taxa para liberar, taxa para receber, pague para receber, taxa de entrega, taxa de cadastro, envie o valor, envie dinheiro, transfira agora, chave pix, boleto anexo, depósito antecipado, deposito antecipado, pagamento antecipado, faça um pix, faca um pix, faça o pagamento, faca o pagamento, mande um pix, envie um pix, fazer um pix, deposito para liberacao, depósito para liberação, pague uma pequena taxa, pequena taxa de liberação, pequena taxa de liberacao',
   25,
   1
 ),
@@ -46,7 +46,7 @@ VALUES
   3,
   'Link suspeito ou encurtado',
   'Tentativa de direcionar o usuário a links ou páginas potencialmente fraudulentas.',
-  'bit.ly, tinyurl, is.gd, clique aqui, acesse o link, link abaixo, link desconhecido, confirme no link, acesse para regularizar, atualize seu cadastro, clique para receber, clique para resgatar, acesse para desbloquear, valide sua conta, página de verificação, pagina de verificacao, link para resgate, acesse o link encurtado, link encurtado, link enviado, pelo link enviado, link recebido, clique no link, acesse a pagina, acesse a página, link a seguir, link para desbloquear',
+  'bit.ly, tinyurl, is.gd, clique aqui, acesse o link, link abaixo, link desconhecido, confirme no link, acesse para regularizar, atualize seu cadastro, clique para receber, clique para resgatar, acesse para desbloquear, valide sua conta, página de verificação, pagina de verificacao, link para resgate, acesse o link encurtado, link encurtado, link enviado, pelo link enviado, link recebido, clique no link, acesse a pagina, acesse a página, link a seguir, link para desbloquear, regularizar-encomenda',
   20,
   1
 ),
@@ -62,7 +62,7 @@ VALUES
   5,
   'Oferta mirabolante ou falso prêmio',
   'Promessas exageradas de prêmios, benefícios ou ganhos financeiros.',
-  'parabéns você ganhou, parabens voce ganhou, você ganhou, voce ganhou, prêmio liberado, premio liberado, benefício exclusivo, beneficio exclusivo, resgate agora, sorteio premiado, saldo disponível, saldo disponivel, você foi contemplado, voce foi contemplado, resgatar valor, ganhe dinheiro, ganha dinheiro, ganha 2000, ganhe 2000, ganho fácil, ganho facil, dinheiro fácil, dinheiro facil, lucro garantido, retorno garantido, multiplique seu dinheiro, renda extra garantida, reembolso disponível, reembolso disponivel, saldo a receber, celular grátis, celular gratis, celular gratuito, ganhe um celular, ganhou um celular, foi selecionado, selecionado para receber, receber um prêmio, receber um premio, prêmio surpresa, premio surpresa, prêmio especial, premio especial, prêmio em dinheiro, premio em dinheiro, confirme seu prêmio, confirme seu premio, pague a taxa para receber, taxa para liberar o prêmio, taxa para liberar o premio',
+  'parabéns você ganhou, parabens voce ganhou, você ganhou um prêmio, voce ganhou um premio, você ganhou, voce ganhou, ganhou um prêmio, ganhou um premio, prêmio liberado, premio liberado, benefício exclusivo, beneficio exclusivo, resgate agora, sorteio premiado, saldo disponível, saldo disponivel, você foi contemplado, voce foi contemplado, resgatar valor, ganhe dinheiro, ganha dinheiro, ganha 2000, ganhe 2000, ganho fácil, ganho facil, dinheiro fácil, dinheiro facil, lucro garantido, retorno garantido, multiplique seu dinheiro, renda extra garantida, reembolso disponível, reembolso disponivel, saldo a receber, celular grátis, celular gratis, celular gratuito, ganhe um celular, ganhou um celular, foi selecionado, selecionado para receber, receber um prêmio, receber um premio, prêmio surpresa, premio surpresa, prêmio especial, premio especial, prêmio em dinheiro, premio em dinheiro, confirme seu prêmio, confirme seu premio, pague a taxa para receber, taxa para liberar o prêmio, taxa para liberar o premio, selecionado para receber um prêmio, selecionado para receber um premio, você foi selecionado para receber um prêmio, voce foi selecionado para receber um premio, você foi selecionado, voce foi selecionado',
   15,
   1
 ),
@@ -70,7 +70,7 @@ VALUES
   6,
   'Ameaça de bloqueio de conta ou serviço',
   'Uso de ameaças sobre contas, documentos ou serviços para pressionar o usuário.',
-  'sua conta foi bloqueada, acesso suspenso, serviço cancelado, servico cancelado, suspeita de fraude, regularize sua situação, regularize sua situacao, cpf bloqueado, evite cancelamento, conta será bloqueada, conta sera bloqueada, conta em análise, conta em analise, benefício bloqueado, beneficio bloqueado, cadastro suspenso, compra não reconhecida, compra nao reconhecida, fatura em atraso, dívida pendente, divida pendente, bloqueio da conta, bloqueio do cartao, bloqueio do cartão, evitar o bloqueio, conta suspensa, bloqueio imediato',
+  'sua conta foi bloqueada, acesso suspenso, serviço cancelado, servico cancelado, suspeita de fraude, regularize sua situação, regularize sua situacao, cpf bloqueado, evite cancelamento, conta será bloqueada, conta sera bloqueada, conta em análise, conta em analise, benefício bloqueado, beneficio bloqueado, cadastro suspenso, compra não reconhecida, compra nao reconhecida, fatura em atraso, dívida pendente, divida pendente, bloqueio da conta, bloqueio do cartao, bloqueio do cartão, evitar o bloqueio, conta suspensa, bloqueio imediato, seu pedido será devolvido, seu pedido sera devolvido, devolvido ao remetente, será devolvido ao remetente, sera devolvido ao remetente, devolução ao remetente, devolucao ao remetente, será devolvido, sera devolvido, evite a devolução, evite a devolucao, evite devolucao, caso não regularize, caso nao regularize',
   20,
   1
 ),
@@ -86,7 +86,7 @@ VALUES
   8,
   'Falsa entrega ou cobrança de encomenda',
   'Cobranças inesperadas para liberar encomendas, entregas ou reembolsos.',
-  'pedido retido, entrega bloqueada, taxa alfandegária, taxa alfandegaria, produto apreendido, confirme o endereço, confirme o endereco, pagamento para liberar encomenda, liberar sua encomenda, taxa para receber encomenda, taxa de entrega pendente, entrega pendente, reembolso pendente, encomenda está retida, encomenda esta retida, encomenda retida, pacote retido, pacote aguardando liberação, pacote aguardando liberacao, taxa de liberação, taxa de liberacao, receber o pacote, liberar o pacote, liberar encomenda, objeto retido, mercadoria retida, taxa dos correios, taxa alfandega, código de rastreio, codigo de rastreio, rastreamento pendente, atualização de endereço, atualizacao de endereco, entrega de transportadora',
+  'pedido retido, entrega bloqueada, taxa alfandegária, taxa alfandegaria, produto apreendido, confirme o endereço, confirme o endereco, pagamento para liberar encomenda, liberar sua encomenda, taxa para receber encomenda, taxa de entrega pendente, entrega pendente, reembolso pendente, encomenda está retida, encomenda esta retida, encomenda retida, pacote retido, pacote aguardando liberação, pacote aguardando liberacao, taxa de liberação, taxa de liberacao, receber o pacote, liberar o pacote, liberar encomenda, objeto retido, mercadoria retida, taxa dos correios, taxa alfandega, código de rastreio, codigo de rastreio, rastreamento pendente, atualização de endereço, atualizacao de endereco, entrega de transportadora, pendência na alfândega, pendencia na alfandega, liberar a entrega, seu pedido será devolvido, seu pedido sera devolvido, devolvido ao remetente',
   15,
   1
 ),
