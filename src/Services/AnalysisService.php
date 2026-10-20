@@ -84,7 +84,8 @@ class AnalysisService {
 
         foreach ($indicadoresCadastrados as $indicador) {
             $idIndicador = (int) $indicador['id_indicador'];
-            $palavrasChave = array_filter(array_map('trim', explode(',', $indicador['palavras_chave'])));
+            $tipoIndicador = $this->obterTipoIndicador($indicador);
+            $palavrasChave = $this->obterPalavrasChaveCompletas($indicador, $tipoIndicador);
             $termosEncontrados = [];
 
             foreach ($palavrasChave as $termo) {
@@ -117,12 +118,42 @@ class AnalysisService {
             }
 
             // --- REGRAS CONTEXTUAIS AVANÇADAS ---
-            $tipoIndicador = $this->obterTipoIndicador($indicador);
 
             // Regra 1: Avisos Preventivos Legítimos de Segurança (Credenciais e Falso Suporte)
             if (in_array($tipoIndicador, ['credenciais', 'falso_suporte'], true)) {
                 if ($this->ehContextoPreventivo($mensagemNormalizada, $termosDeduplicados, $idIndicador)) {
                     continue;
+                }
+            }
+
+            // Regra 1B: Diferenciação entre dados bancários cadastrais e senha/código
+            // Não tratar "dados bancários" como se fosse pedido explícito de senha, token ou código SMS
+            if ($tipoIndicador === 'credenciais') {
+                $termosDeduplicados = array_values(array_filter($termosDeduplicados, function ($t) {
+                    $tNorm = $this->normalizarTexto($t);
+                    return !in_array($tNorm, ['dados bancarios', 'dados da conta', 'numero da conta', 'agencia'], true);
+                }));
+
+                if (empty($termosDeduplicados)) {
+                    continue;
+                }
+            }
+
+            // Regra 1C: Ameaças de devolução de encomenda pertencem à falsa entrega, não bloqueio de conta
+            if ($tipoIndicador === 'ameaca') {
+                $temContextoEntregaMensagem = (bool) preg_match(
+                    '/\b(encomenda|pacote|pedido|entrega|transportadora|correios|alfandega)\b/iu',
+                    $mensagemNormalizada
+                );
+                if ($temContextoEntregaMensagem) {
+                    $termosDeduplicados = array_values(array_filter($termosDeduplicados, function ($t) {
+                        $tNorm = $this->normalizarTexto($t);
+                        return !preg_match('/\b(devolvid[oa]|devolucao|pacote|encomenda)\b/iu', $tNorm);
+                    }));
+
+                    if (empty($termosDeduplicados)) {
+                        continue;
+                    }
                 }
             }
 
@@ -146,6 +177,14 @@ class AnalysisService {
                 );
 
                 if (!$temContextoEntrega) {
+                    continue;
+                }
+            }
+
+            // Regra 2D: Validação Contextual de Menção Financeira / Pagamento
+            // Evita falso positivo por palavras genéricas ("pagamento", "taxa", "pix") em avisos legítimos ou negações de cobrança
+            if ($tipoIndicador === 'cobranca') {
+                if ($this->ehMencaoFinanceiraGenericaInocente($mensagemNormalizada, $termosDeduplicados)) {
                     continue;
                 }
             }
@@ -193,10 +232,32 @@ class AnalysisService {
             ];
         }
 
-        // 4. Cálculo do ISD e Limitação a 100 (RF11, RF12)
-        $pontuacaoIsd = min(ISD_MAX_SCORE, max(0, $somaPesos));
+        // 4. Avaliação de Correlação de Risco Relevante entre Indicadores (RF11, RF12)
+        $tiposDetectados = array_map(function ($ind) {
+            return $this->obterTipoIndicador($ind);
+        }, $indicadoresDetectados);
 
-        // 5. Classificação Oficial do Risco (RF13)
+        $bonusCorrelacao = 0;
+
+        // Correlação A: Falso suporte solicitando código SMS / verificação (tentativa de tomada de conta)
+        if (in_array('falso_suporte', $tiposDetectados, true) && in_array('credenciais', $tiposDetectados, true)) {
+            $bonusCorrelacao += 10;
+        }
+
+        // Correlação B: Falsa entrega com solicitação de Pix ou taxa
+        if (in_array('entrega', $tiposDetectados, true) && in_array('cobranca', $tiposDetectados, true)) {
+            $bonusCorrelacao += 5;
+        }
+
+        // Correlação C: Falso prêmio condicionado a pagamento de taxa
+        if (in_array('falso_premio', $tiposDetectados, true) && in_array('cobranca', $tiposDetectados, true)) {
+            $bonusCorrelacao += 5;
+        }
+
+        // 5. Cálculo do ISD e Limitação a 100 (RF11, RF12)
+        $pontuacaoIsd = min(ISD_MAX_SCORE, max(0, $somaPesos + $bonusCorrelacao));
+
+        // 6. Classificação Oficial do Risco (RF13)
         $classificacao = getIsdClassification($pontuacaoIsd);
         $nivelSlug = $this->obterNivelSlug($pontuacaoIsd);
 
@@ -590,6 +651,75 @@ class AnalysisService {
     }
 
     /**
+     * Retorna a lista completa de termos de busca de um indicador, combinando as palavras-chave
+     * cadastradas no banco com termos sinônimos canônicos essenciais da especificação para resiliência.
+     *
+     * @param array $indicador
+     * @param string $tipoIndicador
+     * @return array
+     */
+    private function obterPalavrasChaveCompletas(array $indicador, string $tipoIndicador): array {
+        $termosBanco = array_filter(array_map('trim', explode(',', $indicador['palavras_chave'] ?? '')));
+
+        $termosCanonicos = [];
+        switch ($tipoIndicador) {
+            case 'urgencia':
+                $termosCanonicos = [
+                    'proximos 10 minutos', 'proximos minutos', 'prazo termina hoje', 'termina hoje',
+                    'nao perca essa oportunidade', 'nao perca a oportunidade', 'ainda hoje', 'regularize agora'
+                ];
+                break;
+            case 'cobranca':
+                $termosCanonicos = [
+                    'pague uma taxa de liberacao', 'taxa de liberacao', 'pague uma taxa',
+                    'pague a taxa', 'faca um pix', 'fazer um pix', 'via pix', 'pix para a transportadora'
+                ];
+                break;
+            case 'falso_premio':
+                $termosCanonicos = [
+                    'voce foi sorteado e ganhou', 'voce foi sorteado', 'foi sorteado e ganhou',
+                    'foi sorteado', 'ganhou r$', 'receber seu premio', 'para receber seu premio',
+                    'voce ganhou um premio', 'ganhou um premio', 'receber um premio'
+                ];
+                break;
+            case 'credenciais':
+                $termosCanonicos = [
+                    'codigo que recebeu por sms', 'codigo que acabou de receber por sms',
+                    'codigo de verificacao', 'envie o codigo de verificacao', 'envie o codigo',
+                    'sua senha', 'confirme sua senha', 'digite sua senha'
+                ];
+                break;
+            case 'ameaca':
+                $termosCanonicos = [
+                    'perdera o acesso a sua conta', 'perdera o acesso', 'perda de acesso',
+                    'perder o acesso', 'conta sera bloqueada permanentemente', 'bloqueada permanentemente'
+                ];
+                break;
+            case 'entrega':
+                $termosCanonicos = [
+                    'encomenda esta aguardando liberacao', 'aguardando liberacao', 'para concluir a entrega',
+                    'concluir a entrega', 'seu pacote sera devolvido', 'pacote sera devolvido',
+                    'retido na alfandega', 'para liberar sua entrega', 'liberar sua entrega'
+                ];
+                break;
+            case 'link':
+                $termosCanonicos = [
+                    'link de regularizacao', 'link de regularização', 'link enviado nesta mensagem',
+                    'acesse o link para regularizar', 'regularize pelo link'
+                ];
+                break;
+            case 'falso_suporte':
+                $termosCanonicos = [
+                    'somos da equipe de suporte', 'equipe de suporte', 'sou do suporte tecnico',
+                    'sou do suporte', 'somos do suporte'
+                ];
+                break;
+        }
+
+        return array_values(array_unique(array_merge($termosBanco, $termosCanonicos)));
+    }
+
+    /**
      * Verifica se a mensagem possui cobrança ativa, solicitação de pagamento ou transferência.
      *
      * @param string $mensagemNorm
@@ -616,6 +746,8 @@ class AnalysisService {
             . '|totalmente\s+(gratuito|gratis)'
             . '|isento\s+de\s+(taxa|tarifa|cobranca)'
             . '|nao\s+precisa\s+pagar|nao\s+e\s+necessario\s+pagar|sem\s+precisar\s+pagar'
+            . '|nao\s+e\s+necessario\s+(realizar|fazer)?\s*(nenhum|qualquer)?\s*(pagamento|cobranca|taxa|custo)'
+            . '|sem\s+cobranca\s+de\s+taxa'
             . '|gratuito\s+e\s+sem\s+taxas?'
             . '|retirada\s+(e\s+)?(gratuita|gratis)'
             . ')\b/iu';
@@ -753,11 +885,82 @@ class AnalysisService {
     }
 
     /**
+     * Avalia se a ocorrência de termos financeiros se resume a menções genéricas inocentes
+     * (ex: "opções de pagamento na área do cliente", "não é necessário nenhum pagamento adicional")
+     * sem qualquer ordem imperativa de pagamento, sem envio de chave Pix e sem vetores de golpe.
+     * Atende ao requisito: "Não atribuir risco automaticamente por palavras genéricas como pagamento, taxa ou Pix sem analisar o contexto."
+     *
+     * @param string $mensagemNorm Texto normalizado
+     * @param array $termosDetectados Termos detectados para o indicador de cobrança
+     * @return bool True se a menção financeira for inofensiva e não representar golpe
+     */
+    private function ehMencaoFinanceiraGenericaInocente(string $mensagemNorm, array $termosDetectados): bool {
+        // Se a mensagem afirma expressamente que não é necessário nenhum pagamento/taxa
+        if ($this->ehContextoSemCobrancaLegitimo($mensagemNorm) && !$this->temOrdemPagamentoAtiva($mensagemNorm)) {
+            return true;
+        }
+
+        // Verifica se todos os termos detectados são termos genéricos que não implicam ordem de pagamento
+        $termosGenericos = ['pagamento', 'boleto', 'taxa', 'dinheiro', 'pix'];
+        $apenasGenericos = true;
+        foreach ($termosDetectados as $termo) {
+            $tNorm = $this->normalizarTexto($termo);
+            if (!in_array($tNorm, $termosGenericos, true)) {
+                $apenasGenericos = false;
+                break;
+            }
+        }
+
+        if ($apenasGenericos) {
+            // Verifica se a menção a pagamento/boleto orienta consulta aos canais oficiais legítimos
+            $temOrientacaoCanalOficial = (bool) preg_match(
+                '/\b(consulte|acesse|veja|confira|opcoes de pagamento|formas? de pagamento|comprovante de pagamento|segunda via)\b.{0,80}\b(area do cliente|site oficial|aplicativo oficial|app oficial|portal oficial|agencia)\b/iu',
+                $mensagemNorm
+            ) || (bool) preg_match(
+                '/\b(area do cliente|site oficial|aplicativo oficial|app oficial)\b.{0,80}\b(pagamento|boleto)\b/iu',
+                $mensagemNorm
+            );
+
+            // Se for orientação a canal oficial e não houver ordem imperativa nem outros vetores de golpe
+            if ($temOrientacaoCanalOficial
+                && !$this->temOrdemPagamentoAtiva($mensagemNorm)
+                && !$this->temAmeacaAtiva($mensagemNorm)
+                && !$this->temUrgenciaPressao($mensagemNorm)
+                && !$this->temLinkSuspeitoAtivo($mensagemNorm)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifica se há ordem ativa/imperativa de pagamento ou transferência característica de golpe.
+     */
+    private function temOrdemPagamentoAtiva(string $mensagemNorm): bool {
+        return (bool) preg_match(
+            '/\b(pague|pague agora|pague a taxa|pague uma taxa|faca um pix|faça um pix|envie um pix|mande um pix|transfira|envie o valor|chave pix|taxa de liberacao|taxa para liberar|deposito antecipado|pix para a transportadora|pague para receber)\b/iu',
+            $mensagemNorm
+        );
+    }
+
+    /**
+     * Verifica presença de link ou encurtador suspeito ativo.
+     */
+    private function temLinkSuspeitoAtivo(string $mensagemNorm): bool {
+        return (bool) preg_match(
+            '/\b(bit\.ly|tinyurl|is\.gd|cutt\.ly|clique aqui|acesse o link|link abaixo|regularizar-encomenda|[a-z0-9\-]+\.example)\b/iu',
+            $mensagemNorm
+        );
+    }
+
+    /**
      * Verifica se a mensagem apresenta ameaças ativas de bloqueio, suspensão, perda ou devolução.
      */
     private function temAmeacaAtiva(string $mensagemNorm): bool {
         return (bool) preg_match(
-            '/\b(sua conta foi bloqueada|conta sera bloqueada|bloqueio hoje|cancelamento imediato|cpf bloqueado|evite cancelamento|servico cancelado|devolvido ao remetente|sera devolvido|devolucao ao remetente|evite a devolucao|evite devolucao|caso nao regularize)\b/iu',
+            '/\b(sua conta foi bloqueada|conta sera bloqueada|bloqueio hoje|cancelamento imediato|cpf bloqueado|evite cancelamento|servico cancelado|devolvido ao remetente|sera devolvido|devolucao ao remetente|evite a devolucao|evite devolucao|caso nao regularize|perdera o acesso|perda de acesso|bloqueada permanentemente)\b/iu',
             $mensagemNorm
         );
     }
@@ -767,17 +970,17 @@ class AnalysisService {
      */
     private function temUrgenciaPressao(string $mensagemNorm): bool {
         return (bool) preg_match(
-            '/\b(urgente|imediatamente|so hoje|ainda hoje|agora mesmo|prazo final|prazo termina hoje|tempo esgotando|nao perca essa oportunidade|nao perca|ultimas horas|tempo limite|bloqueio hoje|cancelamento imediato)\b/iu',
+            '/\b(urgente|imediatamente|so hoje|ainda hoje|agora mesmo|prazo final|prazo termina hoje|tempo esgotando|nao perca essa oportunidade|nao perca|ultimas horas|tempo limite|bloqueio hoje|cancelamento imediato|proximos 10 minutos|proximos minutos)\b/iu',
             $mensagemNorm
         );
     }
 
     /**
-     * Verifica pedido direto e ativo de senhas, códigos ou tokens.
+     * Verifica pedido direto e ativo de senhas, códigos ou tokens (diferenciando de dados bancários/cadastrais).
      */
     private function temPedidoCredencialAtivo(string $mensagemNorm): bool {
         return (bool) preg_match(
-            '/(?<!nunca\s)(?<!jamais\s)(?<!nao\s)\b(informe|digite|compartilhe|envie|forneca|passe|valide|atualize)\b.{0,40}\b(senha|token|codigo sms|codigo de acesso|dados bancarios)\b/iu',
+            '/(?<!nunca\s)(?<!jamais\s)(?<!nao\s)\b(informe|digite|compartilhe|envie|forneca|passe|valide|atualize)\b.{0,40}\b(senha|token|codigo sms|codigo de acesso|codigo de verificacao)\b/iu',
             $mensagemNorm
         );
     }
@@ -787,7 +990,7 @@ class AnalysisService {
      */
     private function temFalsoPremioAtivo(string $mensagemNorm): bool {
         return (bool) preg_match(
-            '/\b(parabens voce ganhou|voce ganhou um premio|voce ganhou|ganhou um premio|premio liberado|sorteio premiado|voce foi contemplado|foi selecionado para receber|selecionado para receber|receber um premio)\b/iu',
+            '/\b(parabens voce ganhou|voce ganhou um premio|voce ganhou|ganhou um premio|premio liberado|sorteio premiado|voce foi contemplado|foi selecionado para receber|selecionado para receber|receber um premio|voce foi sorteado|foi sorteado|ganhou r\$|receber seu premio)\b/iu',
             $mensagemNorm
         );
     }
