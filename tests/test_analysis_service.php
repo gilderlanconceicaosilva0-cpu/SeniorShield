@@ -3,12 +3,32 @@
  * SeniorShield - Testes Automatizados da Fase 3 (Motor do ISD e Histórico)
  */
 
+
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../src/Services/AnalysisService.php';
+require_once __DIR__ . '/../src/Services/AuthService.php';
 
 $pdo = getDbConnection();
 $service = new AnalysisService($pdo);
+$authService = new AuthService($pdo);
+
+// Cria um usuário temporário para os testes.
+$emailTeste = 'teste_analysis_' . uniqid() . '@seniorshield.local';
+$senhaTeste = 'SenhaForte@2026';
+
+    $resCadastro = $authService->cadastrar(
+    'Usuario Teste',
+    $emailTeste,
+    $senhaTeste,
+    $senhaTeste
+);
+
+$idUsuarioTeste = (int) ($resCadastro['id_usuario'] ?? 0);
+
+if (empty($resCadastro['sucesso']) || $idUsuarioTeste <= 0) {
+    exit("ERRO: Não foi possível criar o usuário temporário.\n");
+}
 
 $totalTests = 0;
 $passedTests = 0;
@@ -90,7 +110,7 @@ assertTest(getIsdClassification(100) === 'Risco crítico', '100 pontos -> Risco 
 echo "\n7. Persistência no Banco de Dados (RF17-RF22, CA07):\n";
 // Usamos o usuário ID 1 que já existe no banco
 $msgPersistir = 'URGENTE: Notamos uma transação suspeita na sua conta. Clique em bit.ly/seguro e informe seu código sms para evitar bloqueio.';
-$resPersistir = $service->analisarMensagem($msgPersistir, 1);
+$resPersistir = $service->analisarMensagem($msgPersistir, $idUsuarioTeste);
 
 assertTest($resPersistir['salvo_no_historico'] === true, 'Análise com ID de usuário deve ser gravada no histórico');
 assertTest(!empty($resPersistir['id_analise']), 'ID da análise gerada deve ser retornado');
@@ -105,22 +125,25 @@ assertTest($countAi > 0, 'Indicadores detectados devem estar vinculados na tabel
 
 // 8. Teste de Consulta ao Histórico do Usuário (RF23, CA08)
 echo "\n8. Consulta de histórico e detalhes (RF23, CA08):\n";
-$historico = $service->obterHistoricoUsuario(1);
+$historico = $service->obterHistoricoUsuario($idUsuarioTeste);
 assertTest(!empty($historico), 'Histórico do usuário deve listar as análises gravadas');
 assertTest($historico[0]['id_analise'] === $idCriado, 'A análise mais recente deve aparecer no topo do histórico');
 
-$analiseDetalhada = $service->obterAnalisePorId($idCriado, 1);
+$analiseDetalhada = $service->obterAnalisePorId($idCriado, $idUsuarioTeste);
 assertTest($analiseDetalhada !== null, 'obterAnalisePorId deve retornar os dados completos');
 assertTest(!empty($analiseDetalhada['indicadores']), 'Detalhes da análise devem conter os indicadores associados');
 
 // Estatísticas do usuário
-$stats = $service->obterEstatisticasUsuario(1);
+$stats = $service->obterEstatisticasUsuario($idUsuarioTeste);
 assertTest($stats['total'] >= 1, 'Estatísticas do usuário devem contabilizar a análise', "Total: {$stats['total']}");
 
 // Limpeza da análise de teste para não poluir o banco do usuário
-$service->excluirAnalise($idCriado, 1);
-$analiseAposExclusao = $service->obterAnalisePorId($idCriado, 1);
+$service->excluirAnalise($idCriado, $idUsuarioTeste);
+$analiseAposExclusao = $service->obterAnalisePorId($idCriado, $idUsuarioTeste);
 assertTest($analiseAposExclusao === null, 'Exclusão da análise de teste deve funcionar');
+
+$pdo->prepare('DELETE FROM usuarios WHERE id_usuario = ?')
+    ->execute([$idUsuarioTeste]);
 
 echo "\n=================================================================\n";
 echo " Resultado dos Testes: {$passedTests} de {$totalTests} aprovados!\n";

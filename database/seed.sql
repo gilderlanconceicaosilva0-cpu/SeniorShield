@@ -30,7 +30,7 @@ VALUES
   1,
   'Urgência extrema',
   'Pressão psicológica para forçar uma ação imediata.',
-  'urgente,imediatamente,agora,só hoje,nao perca,não perca,última chance,ultima chance,última oportunidade,prazo final,atenção imediata,ação necessária,evite o bloqueio,bloqueio hoje,cancelamento imediato,último aviso,responda imediatamente,regularize hoje,tempo esgotando',
+  'urgente, imediatamente, agora, só hoje, so hoje, nao perca, não perca, última chance, ultima chance, última oportunidade, ultima oportunidade, prazo final, atenção imediata, atencao imediata, ação necessária, acao necessaria, evite o bloqueio, bloqueio hoje, cancelamento imediato, último aviso, ultimo aviso, responda imediatamente, regularize hoje, tempo esgotando, ainda hoje, agora mesmo, últimas horas, ultimas horas, tempo limite, prazo se esgotando, evitar bloqueio',
   15,
   1
 ),
@@ -38,7 +38,7 @@ VALUES
   2,
   'Pedido de dinheiro ou transferência',
   'Solicitação suspeita de pagamentos, transferências ou depósitos.',
-  'pix,transferência,transferencia,transferir,dinheiro,depósito,deposito,deposite,pagamento,pagar,pague,pague agora,pagar taxa,taxa de liberação,taxa de liberacao,envie o valor,envie dinheiro,transfira agora,chave pix,boleto anexo,depósito antecipado,deposito antecipado,pagamento antecipado,pague para receber,taxa de entrega,taxa de cadastro,faça um pix,faca um pix',
+  'pix, transferência, transferencia, transferir, dinheiro, depósito, deposito, deposite, pagamento, pagar, pague, pague agora, pagar taxa, pagar a taxa, pague a taxa, taxa de liberação, taxa de liberacao, taxa para liberar, envie o valor, envie dinheiro, transfira agora, chave pix, boleto anexo, depósito antecipado, deposito antecipado, pagamento antecipado, pague para receber, taxa de entrega, taxa de cadastro, faça um pix, faca um pix, faça o pagamento, faca o pagamento, mande um pix, envie um pix, fazer um pix, deposito para liberacao, depósito para liberação',
   25,
   1
 ),
@@ -46,7 +46,7 @@ VALUES
   3,
   'Link suspeito ou encurtado',
   'Tentativa de direcionar o usuário a links ou páginas potencialmente fraudulentas.',
-  'bit.ly,tinyurl,is.gd,clique aqui,acesse o link,link abaixo,link desconhecido,confirme no link,acesse para regularizar,atualize seu cadastro,clique para receber,clique para resgatar,acesse para desbloquear,valide sua conta,página de verificação,pagina de verificacao,link para resgate',
+  'bit.ly, tinyurl, is.gd, clique aqui, acesse o link, link abaixo, link desconhecido, confirme no link, acesse para regularizar, atualize seu cadastro, clique para receber, clique para resgatar, acesse para desbloquear, valide sua conta, página de verificação, pagina de verificacao, link para resgate, acesse o link encurtado, link encurtado, link enviado, pelo link enviado, link recebido, clique no link, acesse a pagina, acesse a página, link a seguir, link para desbloquear',
   20,
   1
 ),
@@ -54,7 +54,7 @@ VALUES
   4,
   'Pedido de senha ou código de confirmação',
   'Tentativa de obter credenciais, códigos de autenticação ou dados pessoais.',
-  'informe sua senha,envie o código,envie o codigo,código de confirmação,codigo de confirmacao,código sms,codigo sms,digite seu token,senha do cartão,senha do cartao,confirme sua senha,código de autenticação,codigo de autenticacao,código de segurança,codigo de seguranca,código recebido por sms,codigo recebido por sms,número do cartão,numero do cartao,dados bancários,dados bancarios,compartilhe sua senha',
+  'informe sua senha, envie o código, envie o codigo, código de confirmação, codigo de confirmacao, código sms, codigo sms, digite seu token, senha do cartão, senha do cartao, confirme sua senha, código de autenticação, codigo de autenticacao, código de segurança, codigo de seguranca, código recebido por sms, codigo recebido por sms, número do cartão, numero do cartao, dados bancários, dados bancarios, compartilhe sua senha, compartilhe o código, compartilhe o codigo, compartilhe o código de acesso, compartilhe o codigo de acesso, código de acesso, codigo de acesso, código de verificação, codigo de verificacao, envie o código de acesso, envie o codigo de acesso, informe seu código, informe seu codigo, informe o código, informe o codigo, digite sua senha, forneça sua senha, forneca sua senha, passe sua senha, passe o código, passe o codigo',
   25,
   1
 ),
@@ -62,7 +62,7 @@ VALUES
   5,
   'Oferta mirabolante ou falso prêmio',
   'Promessas exageradas de prêmios, benefícios ou ganhos financeiros.',
-  'parabéns você ganhou,parabens voce ganhou,você ganhou,voce ganhou,prêmio liberado,premio liberado,benefício exclusivo,beneficio exclusivo,resgate agora,sorteio premiado,saldo disponível,saldo disponivel,você foi contemplado,voce foi contemplado,resgatar valor,ganhe dinheiro,ganha dinheiro,ganha 2000,ganhe 2000,ganho fácil,ganho facil,dinheiro fácil,dinheiro facil,lucro garantido,retorno garantido,multiplique seu dinheiro,renda extra garantida,reembolso disponível,reembolso disponivel,saldo a receber,celular grátis,celular gratis,celular gratuito,ganhe um celular,ganhou um celular,foi selecionado,selecionado para receber,receber um prêmio,receber um premio,prêmio surpresa,premio surpresa,prêmio especial,premio especial,prêmio em dinheiro,premio em dinheiro,confirme seu prêmio,confirme seu premio,pague a taxa para receber,taxa para liberar o prêmio,taxa para liberar o premio',
+  'parabéns você ganhou, parabens voce ganhou, você ganhou, voce ganhou, prêmio liberado, premio liberado, benefício exclusivo, beneficio exclusivo, resgate agora, sorteio premiado, saldo disponível, saldo disponivel, você foi contemplado, voce foi contemplado, resgatar valor, ganhe dinheiro, ganha dinheiro, ganha 2000, ganhe 2000, ganho fácil, ganho facil, dinheiro fácil, dinheiro facil, lucro garantido, retorno garantido, multiplique seu dinheiro, renda extra garantida, reembolso disponível, reembolso disponivel, saldo a receber, celular grátis, celular gratis, celular gratuito, ganhe um celular, ganhou um celular, foi selecionado, selecionado para receber, receber um prêmio, receber um premio, prêmio surpresa, premio surpresa, prêmio especial, premio especial, prêmio em dinheiro, premio em dinheiro, confirme seu prêmio, confirme seu premio, pague a taxa para receber, taxa para liberar o prêmio, taxa para liberar o premio',
   15,
   1
 ),
@@ -70,7 +70,7 @@ VALUES
   6,
   'Ameaça de bloqueio de conta ou serviço',
   'Uso de ameaças sobre contas, documentos ou serviços para pressionar o usuário.',
-  'sua conta foi bloqueada,acesso suspenso,serviço cancelado,servico cancelado,suspeita de fraude,regularize sua situação,regularize sua situacao,cpf bloqueado,evite cancelamento,conta será bloqueada,conta sera bloqueada,conta em análise,conta em analise,benefício bloqueado,beneficio bloqueado,cadastro suspenso,compra não reconhecida,compra nao reconhecida,fatura em atraso,dívida pendente,divida pendente',
+  'sua conta foi bloqueada, acesso suspenso, serviço cancelado, servico cancelado, suspeita de fraude, regularize sua situação, regularize sua situacao, cpf bloqueado, evite cancelamento, conta será bloqueada, conta sera bloqueada, conta em análise, conta em analise, benefício bloqueado, beneficio bloqueado, cadastro suspenso, compra não reconhecida, compra nao reconhecida, fatura em atraso, dívida pendente, divida pendente, bloqueio da conta, bloqueio do cartao, bloqueio do cartão, evitar o bloqueio, conta suspensa, bloqueio imediato',
   20,
   1
 ),
@@ -78,7 +78,7 @@ VALUES
   7,
   'Falso familiar ou pedido de ajuda',
   'Mensagens que podem imitar conhecidos e pedir dinheiro com urgência.',
-  'troquei de número,troquei de numero,meu celular quebrou,novo número,novo numero,salva meu contato,faz um pix para mim,faz um pix pra mim,paga essa conta,preciso de dinheiro urgente,depois te devolvo,estou sem acesso à minha conta,estou sem acesso a minha conta,não posso falar agora,nao posso falar agora',
+  'troquei de número, troquei de numero, meu celular quebrou, novo número, novo numero, salva meu contato, faz um pix para mim, faz um pix pra mim, paga essa conta, preciso de dinheiro urgente, depois te devolvo, estou sem acesso à minha conta, estou sem acesso a minha conta, não posso falar agora, nao posso falar agora, estou usando outro número, estou usando outro numero, celular estragou, meu celular estragou, telefone quebrou, meu telefone quebrou, perdi meu celular, salve meu novo número, salve meu novo numero, salva esse número, salva esse numero, outro número, outro numero, salva o meu contato',
   20,
   1
 ),
@@ -86,7 +86,7 @@ VALUES
   8,
   'Falsa entrega ou cobrança de encomenda',
   'Cobranças inesperadas para liberar encomendas, entregas ou reembolsos.',
-  'pedido retido,entrega bloqueada,taxa alfandegária,taxa alfandegaria,produto apreendido,confirme o endereço,confirme o endereco,pagamento para liberar encomenda,liberar sua encomenda,taxa para receber encomenda,taxa de entrega pendente,entrega pendente,reembolso pendente',
+  'pedido retido, entrega bloqueada, taxa alfandegária, taxa alfandegaria, produto apreendido, confirme o endereço, confirme o endereco, pagamento para liberar encomenda, liberar sua encomenda, taxa para receber encomenda, taxa de entrega pendente, entrega pendente, reembolso pendente, encomenda está retida, encomenda esta retida, encomenda retida, pacote retido, pacote aguardando liberação, pacote aguardando liberacao, taxa de liberação, taxa de liberacao, receber o pacote, liberar o pacote, liberar encomenda, objeto retido, mercadoria retida, taxa dos correios, taxa alfandega, código de rastreio, codigo de rastreio, rastreamento pendente, atualização de endereço, atualizacao de endereco, entrega de transportadora',
   15,
   1
 ),
@@ -94,7 +94,7 @@ VALUES
   9,
   'Falso emprego, empréstimo ou investimento',
   'Promessas suspeitas de emprego, crédito ou retorno financeiro.',
-  'vaga garantida,trabalho fácil,trabalho facil,ganhe por dia,renda sem esforço,renda sem esforco,investimento sem risco,lucro diário garantido,lucro diario garantido,retorno acima do mercado,empréstimo aprovado,emprestimo aprovado,crédito liberado,credito liberado,pague a taxa para liberar o empréstimo,pague a taxa para liberar o emprestimo,depósito para contratação,deposito para contratacao,comissão antecipada,comissao antecipada',
+  'vaga garantida, trabalho fácil, trabalho facil, ganhe por dia, renda sem esforço, renda sem esforco, investimento sem risco, lucro diário garantido, lucro diario garantido, retorno acima do mercado, empréstimo aprovado, emprestimo aprovado, crédito liberado, credito liberado, pague a taxa para liberar o empréstimo, pague a taxa para liberar o emprestimo, depósito para contratação, deposito para contratacao, comissão antecipada, comissao antecipada, selecionado para uma vaga, selecionado para vaga, vaga com salário alto, vaga com salario alto, taxa de cadastro, liberar sua contratação, liberar sua contratacao, liberar contratação, liberar contratacao, taxa para contratação, taxa para contratacao, taxa de inscrição, taxa de inscricao, depósito para cadastro, deposito para cadastro, vaga de emprego, salário alto garantido, salario alto garantido',
   20,
   1
 ),
@@ -102,7 +102,7 @@ VALUES
   10,
   'Falso suporte ou acesso remoto',
   'Tentativas suspeitas de obter acesso ao dispositivo ou induzir transferências.',
-  'somos do suporte, suporte técnico do seu banco, suporte tecnico do seu banco, suporte do banco, ligacao do banco, ligação do banco, confirme uma operação, confirme uma operacao, instale este aplicativo, instale este app, compartilhe sua tela, compartilhe o código, compartilhe o codigo, compartilhe o código de acesso, compartilhe o codigo de acesso, código de acesso, codigo de acesso, código de confirmação, codigo de confirmacao, código de verificação, codigo de verificacao, acesso remoto, aplicativo de acesso remoto, controle remoto do dispositivo, valide sua identidade, validação por telefone, validacao por telefone, transfira para uma conta segura, conta protegida, procedimento de segurança, procedimento de seguranca, acesso ao seu dispositivo',
+  'somos do suporte, suporte técnico do seu banco, suporte tecnico do seu banco, suporte do banco, ligação do banco, ligacao do banco, funcionário do banco, funcionario do banco, central de segurança, central de seguranca, confirme uma operação, confirme uma operacao, instale este aplicativo, instale este app, compartilhe sua tela, compartilhe o código de acesso, compartilhe o codigo de acesso, código de acesso, codigo de acesso, acesso remoto, aplicativo de acesso remoto, controle remoto do dispositivo, valide sua identidade, validação por telefone, validacao por telefone, transfira para uma conta segura, conta protegida, procedimento de segurança, procedimento de seguranca, acesso ao seu dispositivo, controle do seu aparelho',
   20,
   1
 )

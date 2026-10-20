@@ -72,26 +72,18 @@ class AnalysisService {
             ];
         }
 
-        // 3. Processamento e Detecção de Indicadores (RF09, RF10)
+        // 3. Processamento e Detecção de Indicadores Contextuais (RF09, RF10)
         $mensagemNormalizada = $this->normalizarTexto($mensagemLimpa);
 
-        $mensagemPreventiva = preg_match(
-            '/\b(nunca|nao|jamais)\s+(informe|compartilhe|forneca|envie|revele|divulgue)\b.{0,80}\b(senha|codigo|token|dados bancarios)\b/iu',
-            $mensagemNormalizada
-            ) === 1;
-            $mensagemSemCobranca = preg_match(
-                '/\b(nao preciso pagar|nao precisa pagar|nao e necessario pagar|nao ha cobranca|sem custo|entrega gratuita|entrega gratis)\b/iu',
-                $mensagemNormalizada
-            ) === 1;
+        $temCobrancaAtiva = $this->temCobrancaAtiva($mensagemNormalizada);
+        $ehSemCobrancaLegitimo = $this->ehContextoSemCobrancaLegitimo($mensagemNormalizada);
+        $ehSelecaoEmprego = $this->ehSelecaoEmprego($mensagemNormalizada);
 
-        $cobrancaExplicita = preg_match(
-                '/\b(pague|pagar uma taxa|pague a taxa|taxa para liberar|taxa de liberacao|transfira|faca um deposito|faca o pagamento)\b/iu',
-                $mensagemNormalizada
-        ) === 1;
-         $indicadoresDetectados = [];
-         $somaPesos = 0;
+        $indicadoresDetectados = [];
+        $somaPesos = 0;
 
-            foreach ($indicadoresCadastrados as $indicador) {
+        foreach ($indicadoresCadastrados as $indicador) {
+            $idIndicador = (int) $indicador['id_indicador'];
             $palavrasChave = array_filter(array_map('trim', explode(',', $indicador['palavras_chave'])));
             $termosEncontrados = [];
 
@@ -101,87 +93,95 @@ class AnalysisService {
                 }
 
                 $termoNormalizado = $this->normalizarTexto($termo);
+                if ($termoNormalizado === '') {
+                    continue;
+                }
 
-                // Expressão regular com fronteiras seguras para letras e números
-                $padrao = '/(?<![a-z0-9])' . preg_quote($termoNormalizado, '/') . '(?![a-z0-9])/iu';
+                // Expressão regular com fronteiras seguras e flexibilidade para múltiplos espaços
+                $termoRegex = preg_replace('/\s+/', '\s+', preg_quote($termoNormalizado, '/'));
+                $padrao = '/(?<![a-z0-9])' . $termoRegex . '(?![a-z0-9])/iu';
 
                 if (preg_match($padrao, $mensagemNormalizada)) {
                     $termosEncontrados[] = $termo;
                 }
             }
 
-
-            $idIndicador = (int) $indicador['id_indicador'];
-
-            // Ignora indicadores de senha e falso suporte em avisos preventivos.
-            if (
-                in_array($idIndicador, [4, 10], true)
-                && $mensagemPreventiva
-            ) {
-                continue;
-}
-
-            // Não considera uma negação de cobrança como pedido de pagamento.
-            if (
-                $idIndicador === 2
-                && $mensagemSemCobranca
-                && !$cobrancaExplicita
-            ) {
+            if (empty($termosEncontrados)) {
                 continue;
             }
 
-            // Evita falso positivo em mensagens de sorteio sem cobrança.
-            if (
-                (int) $indicador['id_indicador'] === 5
-                && $mensagemSemCobranca
-                && !$cobrancaExplicita
-            ) {
+            // Deduplica termos encontrados descartando repetições e substrings redundantes
+            $termosDeduplicados = $this->deduplicarTermos($termosEncontrados);
+            if (empty($termosDeduplicados)) {
                 continue;
             }
 
-            // Evita falso positivo em mensagens de sorteio sem cobrança.
-            if (
-                $idIndicador === 5
-                && $mensagemSemCobranca
-                && !$cobrancaExplicita
-            ) {
+            // --- REGRAS CONTEXTUAIS AVANÇADAS ---
+
+            // Regra 1: Avisos Preventivos Legítimos de Segurança (IDs 4 e 10)
+            if (in_array($idIndicador, [4, 10], true)) {
+                if ($this->ehContextoPreventivo($mensagemNormalizada, $termosDeduplicados, $idIndicador)) {
+                    continue;
+                }
+            }
+
+            // Regra 2: Contexto Legítimo de Gratuidade / Ausência de Cobrança (IDs 2, 5 e 8)
+            // Se há garantia explícita de gratuidade sem nenhuma cobrança ativa posterior
+            if ($ehSemCobrancaLegitimo && !$temCobrancaAtiva) {
+                if (in_array($idIndicador, [2, 5, 8], true)) {
+                    continue;
+                }
+            }
+
+            // Regra 2B: Mensagens de Logística/Rastreamento Legítimas sem Ameaça nem Cobrança (ID 8)
+            if ($idIndicador === 8 && $this->ehLogisticaLegitimaSemAmeaca($mensagemNormalizada, $termosDeduplicados)) {
                 continue;
             }
-            // Se pelo menos um termo chave foi encontrado, o indicador é registrado (RF10)
-            if (!empty($termosEncontrados)) {
+            // Regra 2C: Exige contexto real de entrega para ativar o indicador ID 8
+            if ($idIndicador === 8) {
+                $temContextoEntrega = (bool) preg_match(
+                    '/\b(encomenda|pacote|pedido|entrega|transportadora|correios|rastreamento|rastreio|alfandega|alfandegaria|objeto|mercadoria)\b/iu',
+                    $mensagemNormalizada
+                );
 
-                    $pesoBase = (int) $indicador['peso'];
-
-                    // Remove duplicatas que diferem apenas por acentos ou maiúsculas.
-                    $termosUnicos = [];
-
-                    foreach ($termosEncontrados as $termoEncontrado) {
-                        $chave = $this->normalizarTexto($termoEncontrado);
-                        $termosUnicos[$chave] = $termoEncontrado;
-                    }
-
-                    $termosEncontrados = array_values($termosUnicos);
-
-                    // Bônus de 5 pontos por sinal adicional, limitado a 10.
-                    $bonusSinais = min(
-                        10,
-                        max(0, (count($termosEncontrados) - 1) * 5)
-                    );
-
-                    // O bônus não pode elevar este indicador acima de 30 pontos.
-                    $pesoAplicado = min(30, $pesoBase + $bonusSinais);
-
-                    $somaPesos += $pesoAplicado;
-
-
-                $indicadoresDetectados[] = [
-                    'id_indicador'      => (int)$indicador['id_indicador'],
-                    'nome'              => $indicador['nome'],
-                    'descricao'         => $indicador['descricao'] ?? '',
-                    'peso'              => $pesoAplicado,
-                    'termos_detectados' => array_values(array_unique($termosEncontrados))
-                ];
+                if (!$temContextoEntrega) {
+                    continue;
+                }
             }
+
+            // Regra 3: Desambiguação de Vaga de Emprego vs. Falso Prêmio (ID 5 vs ID 9)
+            // Expressões genéricas de seleção quando em contexto de emprego pertencem ao ID 9, não ao ID 5
+            if ($idIndicador === 5 && $ehSelecaoEmprego) {
+                // Filtra termos de seleção genérica do indicador de prêmio
+                $termosNaoEmprego = array_filter($termosDeduplicados, function ($t) {
+                    $tNorm = $this->normalizarTexto($t);
+                    return !in_array($tNorm, ['foi selecionado', 'selecionado para receber', 'selecionado', 'você foi contemplado', 'voce foi contemplado'], true);
+                });
+
+                if (empty($termosNaoEmprego)) {
+                    continue;
+                }
+                $termosDeduplicados = array_values($termosNaoEmprego);
+            }
+
+            // Cálculo da pontuação do indicador com bônus por sinais independentes adicionais
+            $pesoBase = (int) $indicador['peso'];
+
+            // Bônus de 5 pontos por sinal independente adicional, limitado a 10 pontos de bônus
+            $bonusSinais = min(10, max(0, (count($termosDeduplicados) - 1) * 5));
+
+            // Limita o peso aplicado deste indicador a no máximo 30 pontos
+            $pesoAplicado = min(30, $pesoBase + $bonusSinais);
+
+            $somaPesos += $pesoAplicado;
+
+            $indicadoresDetectados[] = [
+                'id_indicador'      => $idIndicador,
+                'nome'              => $indicador['nome'],
+                'descricao'         => $indicador['descricao'] ?? '',
+                'peso'              => $pesoAplicado,
+                'termos_detectados' => $termosDeduplicados
+            ];
         }
 
         // 4. Cálculo do ISD e Limitação a 100 (RF11, RF12)
@@ -471,7 +471,7 @@ class AnalysisService {
      * @param string $texto
      * @return string
      */
-    private function normalizarTexto(string $texto): string {
+    public function normalizarTexto(string $texto): string {
         $texto = mb_strtolower($texto, 'UTF-8');
         $mapaAcentos = [
             'à'=>'a','á'=>'a','â'=>'a','ã'=>'a','ä'=>'a','å'=>'a',
@@ -482,7 +482,218 @@ class AnalysisService {
             'ý'=>'y','ÿ'=>'y',
             'ç'=>'c','ñ'=>'n'
         ];
-        return strtr($texto, $mapaAcentos);
+        $texto = strtr($texto, $mapaAcentos);
+        return trim(preg_replace('/\s+/u', ' ', $texto));
+    }
+
+    /**
+     * Deduplica termos detectados removendo repetições por acento/caixa e
+     * descartando termos que sejam estritamente substrings de expressões mais longas
+     * e específicas já encontradas (evitando inflação de pontuação por subfrases).
+     *
+     * @param array $termos
+     * @return array
+     */
+    private function deduplicarTermos(array $termos): array {
+        if (empty($termos)) {
+            return [];
+        }
+
+        // 1. Remove duplicatas normalizadas (acentos/maiúsculas)
+        $termosUnicos = [];
+        foreach ($termos as $t) {
+            $chave = $this->normalizarTexto($t);
+            if (!isset($termosUnicos[$chave])) {
+                $termosUnicos[$chave] = $t;
+            }
+        }
+
+        $lista = array_values($termosUnicos);
+
+        // 2. Ordena por comprimento decrescente (mais específicos primeiro)
+        usort($lista, function ($a, $b) {
+            return mb_strlen($b) <=> mb_strlen($a);
+        });
+
+        // 3. Remove termos que são substrings exatas de um termo mais longo já aceito
+        $deduplicados = [];
+        foreach ($lista as $t) {
+            $tNorm = $this->normalizarTexto($t);
+            $jaCoberto = false;
+            foreach ($deduplicados as $existente) {
+                $existenteNorm = $this->normalizarTexto($existente);
+                if (mb_strpos($existenteNorm, $tNorm) !== false) {
+                    $jaCoberto = true;
+                    break;
+                }
+            }
+            if (!$jaCoberto) {
+                $deduplicados[] = $t;
+            }
+        }
+
+        return $deduplicados;
+    }
+
+    /**
+     * Verifica se a mensagem possui cobrança ativa, solicitação de pagamento ou transferência.
+     *
+     * @param string $mensagemNorm
+     * @return bool
+     */
+    private function temCobrancaAtiva(string $mensagemNorm): bool {
+        return (bool) preg_match(
+            '/\b(pague|pagar|transfira|transferir|faça um pix|faca um pix|faça o pagamento|faca o pagamento|envie um pix|mande um pix|deposite|deposito antecipado|depósito antecipado|taxa para liberar|taxa de liberação|taxa de liberacao|taxa de entrega|taxa de cadastro|chave pix|envie o valor|pague a taxa|pagar taxa|pagar a taxa)\b/iu',
+            $mensagemNorm
+        );
+    }
+
+    /**
+     * Verifica se a mensagem contém afirmação explícita de ausência de cobrança/gratuidade legítima.
+     *
+     * @param string $mensagemNorm
+     * @return bool
+     */
+    private function ehContextoSemCobrancaLegitimo(string $mensagemNorm): bool {
+        $padraoGratuidade = '/\b('
+            . '(a\s+)?entrega\s+(e\s+)?(gratuita|gratis)'
+            . '|nao\s+(existe|ha|tem|sera cobrada)\s+(nenhuma|qualquer)?\s*(taxa|cobranca|custo|pagamento|valor)'
+            . '|sem\s+(nenhum|qualquer)?\s*(custo|taxa|cobranca|pagamento|valor)'
+            . '|totalmente\s+(gratuito|gratis)'
+            . '|isento\s+de\s+(taxa|tarifa|cobranca)'
+            . '|nao\s+precisa\s+pagar|nao\s+e\s+necessario\s+pagar|sem\s+precisar\s+pagar'
+            . '|gratuito\s+e\s+sem\s+taxas?'
+            . '|retirada\s+(e\s+)?(gratuita|gratis)'
+            . ')\b/iu';
+
+        return (bool) preg_match($padraoGratuidade, $mensagemNorm);
+    }
+
+    /**
+     * Verifica se termos de seleção ocorrem em contexto de vaga de emprego/trabalho.
+     *
+     * @param string $mensagemNorm
+     * @return bool
+     */
+    private function ehSelecaoEmprego(string $mensagemNorm): bool {
+        return (bool) preg_match(
+            '/\b(selecionad[oa]|selecao|aprovad[oa])\b.{0,40}\b(vaga|emprego|trabalho|cargo|contratacao|processo seletivo|equipe|salario)\b/iu',
+            $mensagemNorm
+        ) || (bool) preg_match(
+            '/\b(vaga|emprego|trabalho|cargo|contratacao)\b.{0,40}\b(selecionad[oa]|selecao|aprovad[oa])\b/iu',
+            $mensagemNorm
+        );
+    }
+
+    /**
+     * Avalia se a menção a senhas, códigos ou suporte técnico está inserida em um
+     * contexto estritamente preventivo/educativo e sem qualquer vetor ativo de ataque.
+     *
+     * @param string $mensagemNorm Texto normalizado
+     * @param array $termos Termos detectados para o indicador
+     * @param int $idIndicador ID do indicador (4 para senhas/códigos, 10 para falso suporte)
+     * @return bool True se for aviso preventivo legítimo
+     */
+    private function ehContextoPreventivo(string $mensagemNorm, array $termos, int $idIndicador): bool {
+        // Padrões de aviso preventivo e recomendação de segurança institucional
+        $padroesAviso = [
+            // "O banco nunca solicita sua senha ou código..."
+            '/\b(o\s+banco|instituicao|central|empresa|policia|nenhum\s+funcionario|nossa\s+equipe)\s+(nunca|jamais|nao)\s+(solicita|solicitara|pede|pedira|vai\s+pedir|exige|exigira|requer|envia|manda)\b/iu',
+            // "Nunca informe/compartilhe sua senha..."
+            '/\b(nunca|jamais|nao|nem\s+pense\s+em)\s+(informe|compartilhe|forneca|envie|revele|divulgue|digite|passe|entregue|solicita|pede)\b.{0,60}\b(senha|codigo|token|dados|cartao)\b/iu',
+            // "Senhas/códigos nunca devem ser compartilhados..."
+            '/\b(senhas?|codigos?|tokens?)\b.{0,50}\b(nunca\s+deve\s+ser|jamais\s+deve\s+ser|nao\s+deve\s+ser|e\s+pessoal|sao\s+pessoais|intransferivel)\b/iu',
+            // "Em caso de dúvida use o aplicativo oficial..."
+            '/\b(em\s+caso\s+de\s+duvida|para\s+sua\s+seguranca|por\s+seguranca|alerta\s+de\s+seguranca)\b.{0,80}\b(use|abra|acesse|procure|consulte)\b.{0,40}\b(aplicativo\s+oficial|app\s+oficial|agencia|canais\s+oficiais)\b/iu'
+        ];
+
+        $temAvisoPreventivo = false;
+        foreach ($padroesAviso as $padrao) {
+            if (preg_match($padrao, $mensagemNorm)) {
+                $temAvisoPreventivo = true;
+                break;
+            }
+        }
+
+        if (!$temAvisoPreventivo) {
+            return false;
+        }
+
+        // Verifica se há ordens ativas para extrair credenciais (sem negação)
+        // Ex: "O banco não pede senha, mas informe seu token em bit.ly..."
+        $temPedidoAtivoCredencial = (bool) preg_match(
+            '/(?<!nunca\s)(?<!jamais\s)(?<!nao\s)\b(informe|digite|compartilhe|envie|forneca|passe|valide|atualize)\b.{0,40}\b(senha|token|codigo sms|codigo de acesso|dados bancarios)\b/iu',
+            $mensagemNorm
+        );
+
+        // Verifica se há vetores maliciosos ativos na mensagem
+        $temLinkSuspeito = (bool) preg_match('/\b(bit\.ly|tinyurl|is\.gd|clique aqui|acesse o link encurtado|link abaixo)\b/iu', $mensagemNorm);
+        $temCobranca = $this->temCobrancaAtiva($mensagemNorm);
+        $temInstalacaoOuAcessoRemoto = (bool) preg_match('/\b(instale este aplicativo|instale este app|compartilhe sua tela|acesso remoto|qualquer aplicativo)\b/iu', $mensagemNorm);
+        $temAmeacaBloqueio = (bool) preg_match('/\b(sua conta foi bloqueada|conta sera bloqueada|bloqueio hoje|cancelamento imediato)\b/iu', $mensagemNorm);
+
+        // Se houver qualquer vetor ativo de ataque, o aviso NÃO neutraliza a mensagem
+        if ($temPedidoAtivoCredencial || $temLinkSuspeito || $temCobranca || $temInstalacaoOuAcessoRemoto || $temAmeacaBloqueio) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Verifica se os termos do Indicador 8 (entrega) são exclusivamente termos operacionais
+     * de logística e rastreamento em uma mensagem legítima, sem cobrança, sem links suspeitos
+     * e sem ameaças de retenção ou apreensão.
+     *
+     * @param string $mensagemNorm Texto normalizado
+     * @param array $termosDetectados Termos detectados para o indicador 8
+     * @return bool True se for logística legítima sem qualquer sinal de golpe
+     */
+    private function ehLogisticaLegitimaSemAmeaca(string $mensagemNorm, array $termosDetectados): bool {
+        // Se houver cobrança ou pedido de valores ativo, não é logística neutra
+        if ($this->temCobrancaAtiva($mensagemNorm)) {
+            return false;
+        }
+
+        // Se houver links suspeitos ou encurtados, não é logística neutra
+        $temLinkSuspeito = (bool) preg_match(
+            '/\b(bit\.ly|tinyurl|is\.gd|clique aqui|clique no link|acesse o link|link encurtado|link abaixo|link enviado|pelo link|link para)\b/iu',
+            $mensagemNorm
+        );
+        if ($temLinkSuspeito) {
+            return false;
+        }
+
+        // Se houver ameaça explícita de retenção, bloqueio ou apreensão
+        $temAmeacaRetencao = (bool) preg_match(
+            '/\b(retid[oa]|bloquead[oa]|apreendid[oa]|alfandeg|correios.*taxa|taxa.*correios|evite cancelamento|evite devolucao|multa|penalidade)\b/iu',
+            $mensagemNorm
+        );
+        if ($temAmeacaRetencao) {
+            return false;
+        }
+
+        // Termos que sozinhos descrevem apenas operações logísticas comuns
+        $termosNeutros = [
+            'codigo de rastreio',
+            'confirme o endereco',
+            'atualizacao de endereco',
+            'entrega de transportadora',
+            'receber o pacote',
+            'entrega pendente',
+            'rastreamento pendente'
+        ];
+
+        // Verifica se TODOS os termos detectados são termos neutros
+        foreach ($termosDetectados as $termo) {
+            $tNorm = $this->normalizarTexto($termo);
+            if (!in_array($tNorm, $termosNeutros, true)) {
+                // Contém um termo inerentemente suspeito (ex: 'encomenda retida', 'taxa de liberação')
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

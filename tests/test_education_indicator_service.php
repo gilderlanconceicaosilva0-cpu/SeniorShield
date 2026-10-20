@@ -7,10 +7,30 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../src/Services/IndicatorService.php';
 require_once __DIR__ . '/../src/Services/EducationService.php';
+require_once __DIR__ . '/../src/Services/AuthService.php';
 
 $pdo = getDbConnection();
 $indService = new IndicatorService($pdo);
 $eduService = new EducationService($pdo);
+$authService = new AuthService($pdo);
+
+// Cria um usuário temporário para os testes.
+$emailTeste = 'teste_education_' . uniqid() . '@seniorshield.local';
+$senhaTeste = 'SenhaForte@2026';
+
+$resCadastro = $authService->cadastrar(
+    'Usuario Teste',
+    $emailTeste,
+    $senhaTeste,
+    $senhaTeste
+);
+
+$idUsuarioTeste = (int) ($resCadastro['id_usuario'] ?? 0);
+
+if (empty($resCadastro['sucesso']) || $idUsuarioTeste <= 0) {
+    exit("ERRO: Não foi possível criar o usuário temporário.\n");
+}
+
 
 $totalTests = 0;
 $passedTests = 0;
@@ -65,9 +85,19 @@ $indStatus = $indService->obterIndicadorPorId($idIndTeste);
 assertTest($indStatus['ativo'] === 0, 'Desativar indicador com sucesso (RF39)');
 
 // Excluir indicador teste
-$indService->excluirIndicador($idIndTeste);
+$resultadoExclusao = $indService->excluirIndicador($idIndTeste);
+
+assertTest(
+    $resultadoExclusao['sucesso'] === true,
+    'Excluir indicador teste sem histórico'
+);
+
 $indExcluido = $indService->obterIndicadorPorId($idIndTeste);
-assertTest($indExcluido === null, 'Excluir indicador teste');
+
+    assertTest(
+    $indExcluido === null,
+    'Confirmar que o indicador foi removido do banco'
+);
 
 // 2. Tipos de Golpe (RF40-RF42)
 echo "\n2. Tipos de Golpe (RF40-RF42):\n";
@@ -104,18 +134,18 @@ $questoes = $eduService->listarQuestoes(true);
 assertTest(!empty($questoes), 'Listar questões simuladas ativas (RF28, RF29, CA10)', 'Total: ' . count($questoes));
 
 // Testar resposta correta na questão 1 (que é golpe)
-$resTentativaAcerto = $eduService->processarResposta(1, 'golpe', 1);
+$resTentativaAcerto = $eduService->processarResposta(1, 'golpe', $idUsuarioTeste);
 assertTest($resTentativaAcerto['sucesso'] === true, 'Processar resposta da questão simulada (RF30)');
 assertTest($resTentativaAcerto['acertou'] === true, 'Informar que resposta estava correta (RF31, CA11)');
 assertTest(!empty($resTentativaAcerto['explicacao']), 'Apresentar explicação didática dos sinais (RF32, CA11)');
 assertTest(!empty($resTentativaAcerto['id_tentativa']), 'Registrar tentativa no banco de dados (RF33, RF34, CA12)');
 
 // Testar resposta errada na questão 1
-$resTentativaErro = $eduService->processarResposta(1, 'seguro', 1);
+$resTentativaErro = $eduService->processarResposta(1, 'seguro', $idUsuarioTeste);
 assertTest($resTentativaErro['acertou'] === false, 'Informar resposta incorreta quando aplicável (RF31, CA11)');
 
 // Desempenho do Usuário (RF35)
-$desempenho = $eduService->obterDesempenhoUsuario(1);
+$desempenho = $eduService->obterDesempenhoUsuario($idUsuarioTeste);
 assertTest($desempenho['total_tentativas'] >= 2, 'Consultar total de tentativas realizadas (RF35)', 'Total: ' . $desempenho['total_tentativas']);
 assertTest($desempenho['total_acertos'] >= 1, 'Consultar total de acertos (RF35)', 'Acertos: ' . $desempenho['total_acertos']);
 assertTest(isset($desempenho['taxa_acerto']), 'Calcular taxa percentual de acerto (RF35)', 'Taxa: ' . $desempenho['taxa_acerto'] . '%');
@@ -131,3 +161,7 @@ if (!empty($resTentativaErro['id_tentativa'])) {
 echo "\n=================================================================\n";
 echo " Resultado dos Testes: {$passedTests} de {$totalTests} aprovados!\n";
 echo "=================================================================\n";
+
+// Remove o usuário temporário criado para os testes.
+$pdo->prepare('DELETE FROM usuarios WHERE id_usuario = ?')
+    ->execute([$idUsuarioTeste]);
