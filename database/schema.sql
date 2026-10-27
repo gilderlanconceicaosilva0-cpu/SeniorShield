@@ -12,11 +12,11 @@ CREATE DATABASE IF NOT EXISTS `seniorshield`
 USE `seniorshield`;
 
 -- ---------------------------------------------------------------------
--- 1. Tabela: USUARIOS
+-- 1. Tabela: usuarios
 -- Armazena os usuários cadastrados (comuns e administradores)
 -- RF01, RF02, RF03, RF04, RF05, RF06, RF07 | RNF01, RNF02
 -- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `USUARIOS` (
+CREATE TABLE IF NOT EXISTS `usuarios` (
   `id_usuario` INT AUTO_INCREMENT,
   `nome` VARCHAR(150) NOT NULL,
   `email` VARCHAR(191) NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `ANALISES` (
   KEY `idx_analises_usuario` (`id_usuario`),
   CONSTRAINT `fk_analises_usuario`
     FOREIGN KEY (`id_usuario`)
-    REFERENCES `USUARIOS` (`id_usuario`)
+    REFERENCES `usuarios` (`id_usuario`)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS `TENTATIVAS_APRENDIZADO` (
   KEY `idx_ta_questao` (`id_questao`),
   CONSTRAINT `fk_ta_usuario`
     FOREIGN KEY (`id_usuario`)
-    REFERENCES `USUARIOS` (`id_usuario`)
+    REFERENCES `usuarios` (`id_usuario`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `fk_ta_questao`

@@ -42,7 +42,7 @@ if (!in_array($novoPerfil, ['admin', 'comum'], true)) {
 
 try {
     $pdo = getDbConnection();
-    $stmt = $pdo->prepare('SELECT id_usuario, nome, email, tipo_usuario FROM USUARIOS WHERE email = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id_usuario, nome, email, tipo_usuario FROM usuarios WHERE email = ? LIMIT 1');
     $stmt->execute([trim(mb_strtolower($email))]);
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -59,7 +59,7 @@ try {
 
     // Proteção: Impede o rebaixamento do único administrador ativo
     if ($usuario['tipo_usuario'] === 'admin' && $novoPerfil === 'comum') {
-        $stmtCountAdmins = $pdo->query("SELECT COUNT(*) FROM USUARIOS WHERE tipo_usuario = 'admin'");
+        $stmtCountAdmins = $pdo->query("SELECT COUNT(*) FROM usuarios WHERE tipo_usuario = 'admin'");
         $totalAdmins = (int)$stmtCountAdmins->fetchColumn();
 
         if ($totalAdmins <= 1) {
@@ -69,7 +69,7 @@ try {
         }
     }
 
-    $stmtUpdate = $pdo->prepare('UPDATE USUARIOS SET tipo_usuario = ? WHERE id_usuario = ?');
+    $stmtUpdate = $pdo->prepare('UPDATE usuarios SET tipo_usuario = ? WHERE id_usuario = ?');
     $stmtUpdate->execute([$novoPerfil, $usuario['id_usuario']]);
 
     echo "=================================================================\n";
@@ -78,7 +78,7 @@ try {
     echo "E-mail:  {$usuario['email']}\n";
     echo "Perfil:  {$usuario['tipo_usuario']} -> {$novoPerfil}\n";
     echo "=================================================================\n";
-    echo "Agora você pode acessar a área administrativa em: /SeniorShield/admin/index.php\n";
+    echo "Agora você pode acessar a área administrativa em: /admin/index.php (ou a subpasta onde o sistema foi instalado)\n";
 } catch (Exception $e) {
     echo "[ERRO FATAL] " . $e->getMessage() . "\n";
     exit(1);

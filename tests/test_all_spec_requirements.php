@@ -61,7 +61,7 @@ $resCadDup = $authService->cadastrar('Maria Duplicada', $emailTeste, $senhaTeste
 it('RF03', 'Impedir cadastro de dois usuários com mesmo e-mail', $resCadDup['sucesso'] === false);
 
 // RF04, RNF01, RNF02, CA16: Hash seguro de senha
-$stmtHash = $pdo->prepare('SELECT senha_hash FROM USUARIOS WHERE id_usuario = ?');
+$stmtHash = $pdo->prepare('SELECT senha_hash FROM usuarios WHERE id_usuario = ?');
 $stmtHash->execute([$idUsuarioTeste]);
 $hash = $stmtHash->fetchColumn();
 it('RF04/CA16', 'Senha armazenada com hash seguro e não em texto puro', !empty($hash) && $hash !== $senhaTeste && password_verify($senhaTeste, $hash));
@@ -299,7 +299,7 @@ $educationService->excluirQuestao($idQuestaoAdmin);
 $pdo->prepare('DELETE FROM TIPOS_GOLPE WHERE id_tipo_golpe = ?')->execute([$idTipoTeste]);
 
 // Limpeza do usuário de teste e dados gerados
-$pdo->prepare('DELETE FROM USUARIOS WHERE id_usuario = ?')->execute([$idUsuarioTeste]);
+$pdo->prepare('DELETE FROM usuarios WHERE id_usuario = ?')->execute([$idUsuarioTeste]);
 
 echo "\n=================================================================\n";
 echo " RESULTADO FINAL DA ESPECIFICAÇÃO: {$passed} de {$total} requisitos aprovados!\n";

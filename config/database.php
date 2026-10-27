@@ -10,6 +10,8 @@
  * Cumpre RNF03 (Prepared Statements) e RNF05/RNF07 (Sem credenciais de produção no código e sem vazamento de erros).
  */
 
+require_once __DIR__ . '/env.php';
+
 // 1. Carrega configuração local se existir (não versionada no Git via .gitignore)
 $localConfigFile = __DIR__ . '/database.local.php';
 if (file_exists($localConfigFile)) {
@@ -17,12 +19,12 @@ if (file_exists($localConfigFile)) {
 }
 
 // 2. Define constantes com suporte a variáveis de ambiente e fallback local XAMPP
-defined('DB_HOST')    || define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-defined('DB_PORT')    || define('DB_PORT', getenv('DB_PORT') ?: '3306');
-defined('DB_NAME')    || define('DB_NAME', getenv('DB_NAME') ?: 'seniorshield');
-defined('DB_USER')    || define('DB_USER', getenv('DB_USER') ?: 'root');
-defined('DB_PASS')    || define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
-defined('DB_CHARSET') || define('DB_CHARSET', getenv('DB_CHARSET') ?: 'utf8mb4');
+defined('DB_HOST')    || define('DB_HOST', seniorShieldEnv('DB_HOST', 'localhost') ?: 'localhost');
+defined('DB_PORT')    || define('DB_PORT', seniorShieldEnv('DB_PORT', '3306') ?: '3306');
+defined('DB_NAME')    || define('DB_NAME', seniorShieldEnv('DB_NAME', 'seniorshield') ?: 'seniorshield');
+defined('DB_USER')    || define('DB_USER', seniorShieldEnv('DB_USER', 'root') ?: 'root');
+defined('DB_PASS')    || define('DB_PASS', seniorShieldEnv('DB_PASS', ''));
+defined('DB_CHARSET') || define('DB_CHARSET', seniorShieldEnv('DB_CHARSET', 'utf8mb4') ?: 'utf8mb4');
 
 /**
  * Retorna uma instância PDO conectada ao banco de dados MySQL.

@@ -416,7 +416,7 @@ class AnalysisService {
         try {
             $sql = 'SELECT a.id_analise, a.id_usuario, a.mensagem, a.pontuacao_isd, a.classificacao, a.data_analise, u.nome AS nome_usuario
                     FROM ANALISES a
-                    JOIN USUARIOS u ON a.id_usuario = u.id_usuario
+                    JOIN usuarios u ON a.id_usuario = u.id_usuario
                     WHERE a.id_analise = ?';
             $params = [$idAnalise];
 

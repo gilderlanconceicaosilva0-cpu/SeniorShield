@@ -33,7 +33,7 @@ class UserService {
         $tipo  = trim((string)($filtros['tipo'] ?? ''));
 
         $sql = 'SELECT id_usuario, nome, email, tipo_usuario, data_cadastro
-                FROM USUARIOS
+                FROM usuarios
                 WHERE 1 = 1';
         $params = [];
 
@@ -83,7 +83,7 @@ class UserService {
                    u.data_cadastro,
                    (SELECT COUNT(*) FROM ANALISES a WHERE a.id_usuario = u.id_usuario) AS total_analises,
                    (SELECT COUNT(*) FROM TENTATIVAS_APRENDIZADO t WHERE t.id_usuario = u.id_usuario) AS total_tentativas
-                 FROM USUARIOS u
+                 FROM usuarios u
                  WHERE u.id_usuario = ?
                  LIMIT 1'
             );
@@ -144,7 +144,7 @@ class UserService {
             // Verifica se o novo e-mail já pertence a outro usuário
             try {
                 $stmtEmail = $this->pdo->prepare(
-                    'SELECT id_usuario FROM USUARIOS WHERE email = ? AND id_usuario != ? LIMIT 1'
+                    'SELECT id_usuario FROM usuarios WHERE email = ? AND id_usuario != ? LIMIT 1'
                 );
                 $stmtEmail->execute([$email, $id]);
                 if ($stmtEmail->fetch()) {
@@ -165,7 +165,7 @@ class UserService {
         if ($usuarioAtual['tipo_usuario'] === 'admin' && $tipo === 'comum') {
             try {
                 $stmtCountAdmins = $this->pdo->query(
-                    "SELECT COUNT(*) FROM USUARIOS WHERE tipo_usuario = 'admin'"
+                    "SELECT COUNT(*) FROM usuarios WHERE tipo_usuario = 'admin'"
                 );
                 $totalAdmins = (int)$stmtCountAdmins->fetchColumn();
 
@@ -201,14 +201,14 @@ class UserService {
             if ($alterarSenha) {
                 $novoHash = password_hash($novaSenha, PASSWORD_DEFAULT);
                 $stmtUpdate = $this->pdo->prepare(
-                    'UPDATE USUARIOS
+                    'UPDATE usuarios
                      SET nome = ?, email = ?, tipo_usuario = ?, senha_hash = ?
                      WHERE id_usuario = ?'
                 );
                 $stmtUpdate->execute([$nome, $email, $tipo, $novoHash, $id]);
             } else {
                 $stmtUpdate = $this->pdo->prepare(
-                    'UPDATE USUARIOS
+                    'UPDATE usuarios
                      SET nome = ?, email = ?, tipo_usuario = ?
                      WHERE id_usuario = ?'
                 );
@@ -275,7 +275,7 @@ class UserService {
         if ($usuario['tipo_usuario'] === 'admin') {
             try {
                 $stmtAdmins = $this->pdo->prepare(
-                    "SELECT COUNT(*) FROM USUARIOS WHERE tipo_usuario = 'admin' AND id_usuario != ?"
+                    "SELECT COUNT(*) FROM usuarios WHERE tipo_usuario = 'admin' AND id_usuario != ?"
                 );
                 $stmtAdmins->execute([$id]);
                 $outrosAdmins = (int)$stmtAdmins->fetchColumn();
@@ -298,7 +298,7 @@ class UserService {
         // 4. Executa a exclusão por Prepared Statement
         // Nota: O schema possui ON DELETE CASCADE em ANALISES e TENTATIVAS_APRENDIZADO
         try {
-            $stmtDelete = $this->pdo->prepare('DELETE FROM USUARIOS WHERE id_usuario = ?');
+            $stmtDelete = $this->pdo->prepare('DELETE FROM usuarios WHERE id_usuario = ?');
             $stmtDelete->execute([$id]);
 
             return [
@@ -321,9 +321,9 @@ class UserService {
      */
     public function obterMetricasGerais(): array {
         try {
-            $totalUsuarios = (int)$this->pdo->query('SELECT COUNT(*) FROM USUARIOS')->fetchColumn();
-            $totalComuns   = (int)$this->pdo->query("SELECT COUNT(*) FROM USUARIOS WHERE tipo_usuario = 'comum'")->fetchColumn();
-            $totalAdmins   = (int)$this->pdo->query("SELECT COUNT(*) FROM USUARIOS WHERE tipo_usuario = 'admin'")->fetchColumn();
+            $totalUsuarios = (int)$this->pdo->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
+            $totalComuns   = (int)$this->pdo->query("SELECT COUNT(*) FROM usuarios WHERE tipo_usuario = 'comum'")->fetchColumn();
+            $totalAdmins   = (int)$this->pdo->query("SELECT COUNT(*) FROM usuarios WHERE tipo_usuario = 'admin'")->fetchColumn();
             $totalAnalises = (int)$this->pdo->query('SELECT COUNT(*) FROM ANALISES')->fetchColumn();
             $totalIndicadores = (int)$this->pdo->query('SELECT COUNT(*) FROM INDICADORES')->fetchColumn();
             $totalConteudos   = (int)$this->pdo->query('SELECT COUNT(*) FROM CONTEUDOS')->fetchColumn();
@@ -332,7 +332,7 @@ class UserService {
             // Últimos 5 usuários cadastrados (sem senha_hash)
             $stmtRecentes = $this->pdo->query(
                 'SELECT id_usuario, nome, email, tipo_usuario, data_cadastro
-                 FROM USUARIOS
+                 FROM usuarios
                  ORDER BY id_usuario DESC
                  LIMIT 5'
             );

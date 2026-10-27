@@ -12,6 +12,7 @@ if (defined('SENIORSHIELD_CONFIG_LOADED')) {
     return;
 }
 define('SENIORSHIELD_CONFIG_LOADED', true);
+require_once __DIR__ . '/env.php';
 
 // ---------------------------------------------------------------------
 // 1. Informações Básicas da Aplicação
@@ -21,7 +22,7 @@ defined('APP_VERSION')     || define('APP_VERSION', '1.0.0');
 defined('APP_DESCRIPTION') || define('APP_DESCRIPTION', 'Plataforma de segurança digital para apoio na identificação de possíveis golpes.');
 
 // Ambiente da aplicação: 'development' ou 'production'
-defined('APP_ENV') || define('APP_ENV', getenv('APP_ENV') ?: 'development');
+defined('APP_ENV') || define('APP_ENV', seniorShieldEnv('APP_ENV', 'production') ?: 'production');
 
 // Configuração de exibição de erros (RNF07)
 if (APP_ENV === 'development') {
@@ -39,7 +40,7 @@ if (APP_ENV === 'development') {
 // ---------------------------------------------------------------------
 if (!defined('BASE_URL')) {
     // Permite sobrescrita por variável de ambiente
-    $envBaseUrl = getenv('APP_URL');
+    $envBaseUrl = seniorShieldEnv('APP_URL', '');
     if ($envBaseUrl) {
         define('BASE_URL', rtrim($envBaseUrl, '/'));
     } else {
