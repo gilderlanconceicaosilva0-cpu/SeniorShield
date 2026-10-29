@@ -25,8 +25,20 @@ function e(?string $string): string {
  * @return string URL absoluta para o recurso
  */
 function url(string $path = ''): string {
+    // Os links de navegacao devem permanecer no mesmo dominio da pagina.
+    // APP_URL no .env pode estar incorreta em hospedagens InfinityFree.
+    // Usar caminho absoluto local evita redirecionar para outro dominio.
+    $script = str_replace('\\\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+    $dir = dirname($script);
+
+    // Paginas de administracao estao um nivel abaixo da raiz do projeto.
+    if (preg_match('#/admin$#i', $dir)) {
+        $dir = substr($dir, 0, -strlen('/admin'));
+    }
+
+    $dir = ($dir === '/' || $dir === '.') ? '' : rtrim($dir, '/');
     $path = ltrim($path, '/');
-    return BASE_URL . ($path !== '' ? '/' . $path : '');
+    return $dir . '/' . $path;
 }
 
 /**
