@@ -10,6 +10,19 @@ require_once __DIR__ . '/../src/Helpers/auth_guard.php';
 // Garante sessão segura ativa
 initSecureSession();
 
+// O CSS e um recurso estatico e nao deve depender de APP_URL no .env.
+// Usa o caminho da aplicacao visto pelo navegador, mesmo em uma subpasta
+// ou em telas internas como /admin/index.php.
+$scriptDir = str_replace('\\\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+$scriptDir = rtrim($scriptDir, '/');
+$scriptDir = preg_replace('#/admin$#i', '', $scriptDir);
+if ($scriptDir === '.' || $scriptDir === '/') {
+    $scriptDir = '';
+}
+$cssPath = $scriptDir . '/assets/css/style.css';
+$cssVersion = @filemtime(__DIR__ . '/../assets/css/style.css');
+$cssUrl = $cssPath . ($cssVersion ? '?v=' . (int)$cssVersion : '');
+
 $tituloPagina = isset($pageTitle) ? e($pageTitle) . ' | ' . APP_NAME : APP_NAME . ' — Proteção Contra Golpes Digitais';
 $paginaAtual  = basename($_SERVER['PHP_SELF']);
 ?>
@@ -27,7 +40,7 @@ $paginaAtual  = basename($_SERVER['PHP_SELF']);
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Folha de Estilos Principal do SeniorShield -->
-  <link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
+  <link rel="stylesheet" href="<?= e($cssUrl) ?>">
 </head>
 <body>
   <!-- Atalho de Acessibilidade para Leitores de Tela e Teclado -->
